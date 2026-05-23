@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#b8336a" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1014" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="ARDD Connect — the Network Intelligence Tool for ARDD 2026 and Boston Longevity Week. Personalized program, scored matches, deterministic conference bot." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+
+    <title>ARDD Connect — Network Intelligence</title>
+
+    <script>
+      // Apply persisted theme before first paint so the page never flashes wrong colors.
+      (function () {
+        try {
+          var t = localStorage.getItem('ardd_theme');
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
