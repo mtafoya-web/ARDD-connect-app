@@ -18,6 +18,7 @@ from pydantic import BaseModel, EmailStr, Field
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=30)
     email: EmailStr
+    phone_number: str | None = Field(default=None, max_length=32)
     password: str = Field(min_length=8, max_length=72)
 
 
@@ -39,6 +40,7 @@ class UserOut(BaseModel):
     id: int
     username: str
     email: str
+    phone_number: str | None = None
     bio: str | None = ""
 
     full_name: str | None = ""
@@ -67,16 +69,38 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=8, max_length=72)
 
 
+class GoogleLoginRequest(BaseModel):
+    credential: str = Field(min_length=20)
+
+
+class PasswordResetRequest(BaseModel):
+    identifier: str = Field(min_length=3, max_length=255)
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=20, max_length=255)
+    password: str = Field(min_length=8, max_length=72)
+
+
+class PasswordResetResponse(BaseModel):
+    message: str
+    reset_token: str | None = None
+
+
 class TokenUserOut(BaseModel):
     id: int
     username: str
     email: str
+    phone_number: str | None = None
 
     full_name: str | None = ""
     affiliation: str | None = ""
     role: str | None = ""
     is_superuser: bool = False
     area_of_study: str | None = ""
+
+    class Config:
+        from_attributes = True
 
 
 class LoginResponse(BaseModel):

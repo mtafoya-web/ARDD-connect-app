@@ -9,6 +9,11 @@ engine = create_engine(DATABASE_URL)
 MIGRATIONS = [
     ("users", "profile_photo_url", "ALTER TABLE users ADD COLUMN profile_photo_url VARCHAR(512) DEFAULT ''"),
     ("users", "ardd_meta", "ALTER TABLE users ADD COLUMN ardd_meta JSON DEFAULT '{}'"),
+    ("users", "phone_number", "ALTER TABLE users ADD COLUMN phone_number VARCHAR(32)"),
+    ("users", "auth_provider", "ALTER TABLE users ADD COLUMN auth_provider VARCHAR(32) DEFAULT 'password' NOT NULL"),
+    ("users", "google_sub", "ALTER TABLE users ADD COLUMN google_sub VARCHAR(255)"),
+    ("users", "reset_token_hash", "ALTER TABLE users ADD COLUMN reset_token_hash VARCHAR(255)"),
+    ("users", "reset_token_expires_at", "ALTER TABLE users ADD COLUMN reset_token_expires_at TIMESTAMP WITH TIME ZONE"),
     ("events", "ardd_meta", "ALTER TABLE events ADD COLUMN ardd_meta JSON DEFAULT '{}'"),
 ]
 

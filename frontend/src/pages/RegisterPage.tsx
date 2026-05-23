@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import client from '../api/client';
 import { ArrowRight, UserPlus } from 'lucide-react';
 import { ArddLogo } from '../components/ArddLogo';
 
@@ -12,12 +11,13 @@ export const RegisterPage = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    phone_number: '',
     password: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register, login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -32,7 +32,17 @@ export const RegisterPage = () => {
     setLoading(true);
 
     try {
-      await client.post('/auth/register', formData);
+      const email = formData.email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError('Enter a real email address you can access.');
+        return;
+      }
+
+      await register({
+        ...formData,
+        email,
+        phone_number: formData.phone_number.trim() || undefined,
+      });
       await login({
         username: formData.username,
         password: formData.password,
@@ -78,6 +88,7 @@ export const RegisterPage = () => {
                   value={formData.username}
                   onChange={handleChange}
                   required
+                  autoComplete="username"
                   className={fieldClass}
                 />
               </div>
@@ -93,8 +104,27 @@ export const RegisterPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                   className={fieldClass}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="phone_number" className="mb-2 block text-sm font-bold text-foreground-primary">
+                  Phone number
+                </label>
+                <input
+                  id="phone_number"
+                  name="phone_number"
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  autoComplete="tel"
+                  className={fieldClass}
+                />
+                <p className="mt-2 text-xs leading-relaxed text-foreground-tertiary">
+                  Optional, but it can authorize password recovery if you lose access to email.
+                </p>
               </div>
 
               <div>
@@ -108,6 +138,7 @@ export const RegisterPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
                   className={fieldClass}
                 />
               </div>

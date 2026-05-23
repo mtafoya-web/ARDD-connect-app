@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   register: (payload: RegisterPayload) => Promise<void>;
   login: (payload: LoginPayload) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -30,9 +31,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
+  const saveSession = (response: AuthResponse) => {
+    const { access_token, user } = response;
+    setToken(access_token);
+    setUser(user);
+    localStorage.setItem('ardd_token', access_token);
+    localStorage.setItem('ardd_user', JSON.stringify(user));
+  };
+
   const register = async (payload: RegisterPayload) => {
-    const response = await client.post<AuthResponse>('/auth/register', payload);
-    // Registration successful, but we need to login after
+    await client.post('/auth/register', payload);
   };
 
   const login = async (payload: LoginPayload) => {
@@ -47,11 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
 
-    const { access_token, user } = response.data;
-    setToken(access_token);
-    setUser(user);
-    localStorage.setItem('ardd_token', access_token);
-    localStorage.setItem('ardd_user', JSON.stringify(user));
+    saveSession(response.data);
+  };
+
+  const googleLogin = async (credential: string) => {
+    const response = await client.post<AuthResponse>('/auth/google', { credential });
+    saveSession(response.data);
   };
 
   const logout = () => {
@@ -69,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, register, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, register, login, googleLogin, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

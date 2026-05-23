@@ -22,6 +22,7 @@ class Settings:
     cors_origins: list[str] = _csv(os.getenv("BACKEND_CORS_ORIGINS"))
     max_upload_bytes: int = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
     upload_root: Path = Path(os.getenv("UPLOAD_ROOT", str(BASE_DIR / "uploads"))).resolve()
+    google_client_id: str | None = os.getenv("GOOGLE_CLIENT_ID")
 
     @property
     def is_development(self) -> bool:

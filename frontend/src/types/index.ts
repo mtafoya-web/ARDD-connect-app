@@ -16,6 +16,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  phone_number?: string | null;
   full_name: string;
   bio?: string;
   affiliation: string;
@@ -147,6 +148,7 @@ export interface AuthResponse {
 export interface RegisterPayload {
   username: string;
   email: string;
+  phone_number?: string;
   password: string;
 }
 

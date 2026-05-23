@@ -12,7 +12,12 @@ class User(Base):
 
     username = Column(String(30), unique=True, index=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
+    phone_number = Column(String(32), unique=True, index=True, nullable=True)
     password_hash = Column(String(255), nullable=False)
+    auth_provider = Column(String(32), default="password", nullable=False)
+    google_sub = Column(String(255), unique=True, index=True, nullable=True)
+    reset_token_hash = Column(String(255), nullable=True)
+    reset_token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
     full_name = Column(String(100), default="")
     bio = Column(Text, default="")

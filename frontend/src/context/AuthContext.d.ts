@@ -6,6 +6,7 @@ interface AuthContextType {
     loading: boolean;
     register: (payload: RegisterPayload) => Promise<void>;
     login: (payload: LoginPayload) => Promise<void>;
+    googleLogin: (credential: string) => Promise<void>;
     logout: () => void;
     refreshUser: () => Promise<void>;
 }

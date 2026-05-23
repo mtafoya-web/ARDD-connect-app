@@ -1,8 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRight, LogIn, Sparkles } from 'lucide-react';
 import { ArddLogo } from '../components/ArddLogo';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (options: { client_id: string; callback: (response: { credential?: string }) => void }) => void;
+          renderButton: (parent: HTMLElement, options: Record<string, string | number | boolean>) => void;
+        };
+      };
+    };
+  }
+}
 
 const DEMO_USERS: { label: string; username: string; subtitle: string }[] = [
   { label: 'Dr. Maya Chen', username: 'maya_chen', subtitle: 'Stanford · computational aging' },
@@ -10,6 +23,7 @@ const DEMO_USERS: { label: string; username: string; subtitle: string }[] = [
   { label: 'Sam Okafor', username: 'sam_okafor', subtitle: 'Long Run Capital · VC' },
 ];
 const DEMO_PASSWORD = 'ARDD-demo-2026!';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 const fieldClass =
   'w-full rounded-lg border border-border-secondary bg-surface-muted px-4 py-3 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15';
@@ -21,8 +35,57 @@ export const LoginPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return;
+
+    const renderGoogleButton = () => {
+      if (!window.google || !googleButtonRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async ({ credential }) => {
+          if (!credential) return;
+          setError('');
+          setLoading(true);
+          try {
+            await googleLogin(credential);
+            navigate('/feed');
+          } catch (err: any) {
+            setError(err.response?.data?.detail || 'Google login failed');
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+
+      googleButtonRef.current.innerHTML = '';
+      const width = Math.min(320, googleButtonRef.current.offsetWidth || 320);
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'outline',
+        size: 'large',
+        width,
+        text: 'continue_with',
+        shape: 'rectangular',
+      });
+    };
+
+    if (window.google) {
+      renderGoogleButton();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = renderGoogleButton;
+    script.onerror = () => setError('Google sign-in could not be loaded.');
+    document.head.appendChild(script);
+  }, [googleLogin, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -106,7 +169,7 @@ export const LoginPage = () => {
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
                 <label htmlFor="username" className="mb-2 block text-sm font-bold text-foreground-primary">
-                  Username
+                  Username or email
                 </label>
                 <input
                   id="username"
@@ -115,6 +178,7 @@ export const LoginPage = () => {
                   value={formData.username}
                   onChange={handleChange}
                   required
+                  autoComplete="username"
                   className={fieldClass}
                 />
               </div>
@@ -130,8 +194,15 @@ export const LoginPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="current-password"
                   className={fieldClass}
                 />
+              </div>
+
+              <div className="-mt-2 text-right">
+                <Link to="/reset-password" className="text-sm font-bold text-accent hover:text-accent-hover">
+                  Forgot password?
+                </Link>
               </div>
 
               <button
@@ -143,6 +214,20 @@ export const LoginPage = () => {
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
             </form>
+
+            <div className="my-6 flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-foreground-tertiary">
+              <span className="h-px flex-1 bg-border-secondary" />
+              or
+              <span className="h-px flex-1 bg-border-secondary" />
+            </div>
+
+            {GOOGLE_CLIENT_ID ? (
+              <div className="flex justify-center" ref={googleButtonRef} />
+            ) : (
+              <div className="rounded-lg border border-border-secondary bg-surface-muted px-4 py-3 text-center text-sm text-foreground-secondary">
+                Google login needs VITE_GOOGLE_CLIENT_ID in the frontend env and GOOGLE_CLIENT_ID in the backend env.
+              </div>
+            )}
 
             <p className="mt-7 text-center text-sm text-foreground-secondary">
               New here?{' '}
