@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { clearStoredAuth } from '../api/client';
 import { ArrowRight, LogIn, Sparkles } from 'lucide-react';
 import { ArddLogo } from '../components/ArddLogo';
 
@@ -113,6 +114,7 @@ export const LoginPage = () => {
     setError('');
     setLoading(true);
     try {
+      clearStoredAuth();
       await login({ username, password: DEMO_PASSWORD });
       navigate('/people');
     } catch (err: any) {

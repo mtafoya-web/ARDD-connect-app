@@ -33,6 +33,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Initialize from localStorage, then verify the token with the API.
   useEffect(() => {
     const initializeAuth = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const shouldResetAuth = params.get('resetAuth') === '1';
+      if (shouldResetAuth) {
+        clearStoredAuth();
+        setToken(null);
+        setUser(null);
+        params.delete('resetAuth');
+        const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
+        window.history.replaceState(null, '', nextUrl);
+        setLoading(false);
+        return;
+      }
+
       const savedToken = localStorage.getItem('ardd_token');
       const savedUser = localStorage.getItem('ardd_user');
 
@@ -78,6 +91,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (payload: LoginPayload) => {
+    clearStoredAuth();
+    setToken(null);
+    setUser(null);
+
     // Send as form data for OAuth2PasswordRequestForm
     const formData = new URLSearchParams();
     formData.append('username', payload.username);

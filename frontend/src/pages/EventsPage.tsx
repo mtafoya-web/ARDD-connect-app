@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Calendar, MapPin, Clock, ArrowRight, Sparkles, Star, StarOff, Users2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import client from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { Event } from '../types';
 
 type Tab = 'program' | 'recommended' | 'my';
@@ -39,8 +40,6 @@ const FOCUS_LABELS: Record<string, string> = {
   longevity_biomarkers: 'Biomarkers',
 };
 
-const isAuthed = () => Boolean(localStorage.getItem('ardd_token'));
-
 const formatDay = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -57,11 +56,14 @@ const scoreColor = (score: number | null | undefined) => {
 const SessionRow = ({
   s,
   onStar,
+  isAuthed,
 }: {
   s: SessionDTO;
   onStar: (id: number, next: boolean) => void;
+  isAuthed: boolean;
 }) => {
   const tags = s.topicTags || [];
+
   return (
     <div className="overflow-hidden rounded-lg border border-border-secondary bg-surface p-5 shadow-sm transition hover:border-border-primary hover:shadow-md">
       <div className="flex flex-wrap items-start gap-3">
@@ -85,9 +87,11 @@ const SessionRow = ({
               </span>
             )}
           </div>
+
           <Link to={`/events/${s.id}`} className="mt-2 block">
             <h3 className="text-lg font-bold text-foreground-primary hover:text-accent">{s.title}</h3>
           </Link>
+
           {tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {tags.map((t) => (
@@ -140,7 +144,8 @@ const SessionRow = ({
         >
           Details <ArrowRight size={14} />
         </Link>
-        {isAuthed() && (
+
+        {isAuthed && (
           <button
             type="button"
             onClick={() => onStar(s.id, !s.starred)}
@@ -160,6 +165,9 @@ const SessionRow = ({
 };
 
 const EventsPage = () => {
+  const { token } = useAuth();
+  const isAuthed = Boolean(token);
+
   const [tab, setTab] = useState<Tab>('program');
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -174,7 +182,7 @@ const EventsPage = () => {
     (async () => {
       try {
         setProgramLoading(true);
-        const response = await client.get<Event[]>(`/events/?status=current`);
+        const response = await client.get<Event[]>('/events/?status=current');
         setEvents(response.data);
       } catch (e) {
         console.error('Error fetching events:', e);
@@ -185,32 +193,54 @@ const EventsPage = () => {
   }, []);
 
   const loadRecommended = useCallback(async () => {
+    if (!token) {
+      setRecommended([]);
+      setSessionsError('Sign in to see recommended sessions.');
+      setSessionsLoading(false);
+      return;
+    }
+
     setSessionsLoading(true);
     setSessionsError('');
+
     try {
       const res = await client.get<SessionDTO[]>('/sessions/recommended?limit=20');
       setRecommended(res.data);
     } catch (err: any) {
-      if (err.response?.status === 401) setSessionsError('Sign in to see recommended sessions.');
-      else setSessionsError(err.response?.data?.detail || 'Failed to load recommendations');
+      if (err.response?.status === 401) {
+        setSessionsError('Sign in to see recommended sessions.');
+      } else {
+        setSessionsError(err.response?.data?.detail || 'Failed to load recommendations');
+      }
     } finally {
       setSessionsLoading(false);
     }
-  }, []);
+  }, [token]);
 
   const loadMy = useCallback(async () => {
+    if (!token) {
+      setMy([]);
+      setSessionsError('Sign in to see your schedule.');
+      setSessionsLoading(false);
+      return;
+    }
+
     setSessionsLoading(true);
     setSessionsError('');
+
     try {
       const res = await client.get<SessionDTO[]>('/sessions/my');
       setMy(res.data);
     } catch (err: any) {
-      if (err.response?.status === 401) setSessionsError('Sign in to see your schedule.');
-      else setSessionsError(err.response?.data?.detail || 'Failed to load schedule');
+      if (err.response?.status === 401) {
+        setSessionsError('Sign in to see your schedule.');
+      } else {
+        setSessionsError(err.response?.data?.detail || 'Failed to load schedule');
+      }
     } finally {
       setSessionsLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (tab === 'recommended') loadRecommended();
@@ -218,11 +248,28 @@ const EventsPage = () => {
   }, [tab, loadRecommended, loadMy]);
 
   const handleStar = async (id: number, next: boolean) => {
+    if (!token) {
+      setSessionsError('Sign in to save sessions to your schedule.');
+      return;
+    }
+
     try {
       await client.post(`/sessions/${id}/star`, { star: next });
-      if (tab === 'recommended') loadRecommended();
-      if (tab === 'my') loadMy();
-    } catch (err) {
+
+      if (tab === 'recommended') {
+        loadRecommended();
+      }
+
+      if (tab === 'my') {
+        loadMy();
+      }
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        setSessionsError('Sign in to save sessions to your schedule.');
+      } else {
+        setSessionsError(err.response?.data?.detail || 'Star toggle failed');
+      }
+
       console.error('Star toggle failed', err);
     }
   };
@@ -294,6 +341,7 @@ const EventsPage = () => {
                           <Calendar size={48} />
                         </div>
                       )}
+
                       <div className="absolute left-4 top-4 rounded-full bg-surface/95 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-accent shadow-sm backdrop-blur-sm">
                         {event.ardd_meta?.sessionType || event.status}
                       </div>
@@ -303,6 +351,7 @@ const EventsPage = () => {
                       <h3 className="mb-2 text-lg font-bold text-foreground-primary group-hover:text-accent">
                         {event.title}
                       </h3>
+
                       <p className="mb-5 line-clamp-3 flex-1 text-sm leading-relaxed text-foreground-secondary">
                         {event.description}
                       </p>
@@ -362,7 +411,9 @@ const EventsPage = () => {
                         <Star className="mx-auto mb-3 text-foreground-tertiary" size={48} />
                         <h3 className="text-lg font-bold text-foreground-primary">Your schedule is empty</h3>
                         <p className="mt-1 text-sm text-foreground-secondary">
-                          Add sessions from the Recommended tab to start building your ARDD 2026 schedule.
+                          {isAuthed
+                            ? 'Add sessions from the Recommended tab to start building your ARDD 2026 schedule.'
+                            : 'Sign in to view and build your ARDD 2026 schedule.'}
                         </p>
                       </>
                     ) : (
@@ -370,15 +421,16 @@ const EventsPage = () => {
                         <Sparkles className="mx-auto mb-3 text-foreground-tertiary" size={48} />
                         <h3 className="text-lg font-bold text-foreground-primary">No recommendations yet</h3>
                         <p className="mt-1 text-sm text-foreground-secondary">
-                          Fill in your research focus and conference goals on your profile to unlock personalized
-                          recommendations.
+                          {isAuthed
+                            ? 'Fill in your research focus and conference goals on your profile to unlock personalized recommendations.'
+                            : 'Sign in to see personalized session recommendations.'}
                         </p>
                       </>
                     )}
                   </div>
                 ) : (
                   (tab === 'recommended' ? recommended : my).map((s) => (
-                    <SessionRow key={s.id} s={s} onStar={handleStar} />
+                    <SessionRow key={s.id} s={s} onStar={handleStar} isAuthed={isAuthed} />
                   ))
                 )}
               </div>
