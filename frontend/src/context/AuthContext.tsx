@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import client from '../api/client';
+import client, { clearStoredAuth } from '../api/client';
 import { User, RegisterPayload, LoginPayload, AuthResponse } from '../types';
 
 interface AuthContextType {
@@ -20,16 +20,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize from localStorage on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem('ardd_token');
-    const savedUser = localStorage.getItem('ardd_user');
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    const handleAuthCleared = () => {
+      setToken(null);
+      setUser(null);
+    };
+
+    window.addEventListener('ardd-auth-cleared', handleAuthCleared);
+    return () => window.removeEventListener('ardd-auth-cleared', handleAuthCleared);
   }, []);
+
+  // Initialize from localStorage, then verify the token with the API.
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const savedToken = localStorage.getItem('ardd_token');
+      const savedUser = localStorage.getItem('ardd_user');
+
+      if (!savedToken || !savedUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+        const response = await client.get<User>('/users/me');
+        setUser(response.data);
+        localStorage.setItem('ardd_user', JSON.stringify(response.data));
+      } catch {
+        clearStoredAuth();
+        setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+  }, [token]);
 
   const saveSession = (response: AuthResponse) => {
     const { access_token, user } = response;
@@ -66,8 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('ardd_token');
-    localStorage.removeItem('ardd_user');
+    clearStoredAuth();
   };
 
   const refreshUser = async () => {
