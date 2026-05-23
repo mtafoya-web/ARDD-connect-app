@@ -535,19 +535,22 @@ def get_or_create_user(db: Session, spec: dict) -> User:
         user = User(
             username=spec["username"],
             email=spec["email"],
-            password_hash=hash_password(DEMO_PASSWORD),
-            full_name=spec["full_name"],
-            bio=spec["bio"],
-            affiliation=spec["affiliation"],
-            area_of_study=spec["area_of_study"],
-            research_interests=spec["research_interests"],
-            looking_for=spec["looking_for"],
-            location=spec["location"],
-            role="user",
-            is_superuser=False,
         )
         db.add(user)
-    # Refresh ARDD metadata every run (cheap)
+
+    # Refresh demo fields every run so existing Neon rows stay usable.
+    user.password_hash = hash_password(DEMO_PASSWORD)
+    user.full_name = spec["full_name"]
+    user.bio = spec["bio"]
+    user.affiliation = spec["affiliation"]
+    user.area_of_study = spec["area_of_study"]
+    user.research_interests = spec["research_interests"]
+    user.looking_for = spec["looking_for"]
+    user.location = spec["location"]
+    user.role = "user"
+    user.is_superuser = False
+    user.auth_provider = "password"
+
     meta = dict(spec["ardd_meta"])
     meta["seed"] = True
     user.ardd_meta = meta
