@@ -5,7 +5,7 @@ const AdminDashboard = () => {
   const stats = [
     { label: 'Events', icon: Calendar, path: '/admin/events', count: 'Manage' },
     { label: 'Posts', icon: FileText, path: '/admin/posts', count: 'Manage' },
-    { label: 'Users', icon: Users, path: '/people', count: 'View' },
+    { label: 'Users', icon: Users, path: '/admin/users', count: 'Manage' },
     { label: 'Media', icon: ImageIcon, path: '#', count: 'System' },
   ];
 

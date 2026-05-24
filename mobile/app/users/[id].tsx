@@ -246,10 +246,28 @@ export default function UserProfileScreen() {
 
         {/* Tags */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {profile.role ? <Badge label={profile.role} variant="outline" /> : null}
+          {profile.role ? (
+            <Badge 
+              label={profile.role.toUpperCase()} 
+              variant={profile.role === 'admin' ? 'primary' : 'outline'} 
+            />
+          ) : null}
+          {profile.is_expert && profile.expert_profile?.field ? (
+            <Badge label={profile.expert_profile.field} variant="outline" />
+          ) : null}
           {profile.area_of_study ? <Badge label={profile.area_of_study} variant="outline" /> : null}
           {profile.location ? <Badge label={profile.location} variant="primary" /> : null}
         </View>
+
+        {profile.is_expert && profile.expert_profile?.keywords ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
+            {profile.expert_profile.keywords.split(',').map((kw: string) => (
+              <Text key={kw} style={{ fontFamily: Fonts.medium, fontSize: 12, color: Colors.textTertiary }}>
+                #{kw.trim()}
+              </Text>
+            ))}
+          </View>
+        ) : null}
       </View>
 
       {/* Details */}

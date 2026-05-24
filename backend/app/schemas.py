@@ -55,6 +55,7 @@ class UserOut(BaseModel):
     profile_photo_url: str | None = ""
     ardd_meta: dict | None = None
     is_expert: bool = False
+    expert_profile: dict | None = None
 
     followers_count: int = 0
     following_count: int = 0
@@ -63,6 +64,13 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminUserUpdate(BaseModel):
+    role: str | None = None
+    is_superuser: bool | None = None
+    ardd_meta: dict | None = None
+
 
 
 class LoginRequest(BaseModel):

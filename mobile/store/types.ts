@@ -46,6 +46,7 @@ export interface User {
   profile_photo_public_id?: string;
   ardd_meta?: ARDDParticipantMetadata | null;
   is_expert?: boolean;
+  expert_profile?: { field: string; keywords: string } | null;
   followers_count?: number;
   following_count?: number;
   created_at?: string;

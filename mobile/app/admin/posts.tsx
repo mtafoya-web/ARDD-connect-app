@@ -211,8 +211,19 @@ export default function AdminPostsScreen() {
             </Pressable>
           </View>
 
-          <AdminInput label="Title" value={form.title} onChangeText={(title) => setForm((current) => ({ ...current, title }))} />
-          <AdminInput label="Content" value={form.content} onChangeText={(content) => setForm((current) => ({ ...current, content }))} multiline />
+          <AdminInput 
+            label="Title" 
+            value={form.title} 
+            onChangeText={(title) => setForm((current) => ({ ...current, title }))} 
+            placeholder="e.g. Session Room Change"
+          />
+          <AdminInput 
+            label="Content" 
+            value={form.content} 
+            onChangeText={(content) => setForm((current) => ({ ...current, content }))} 
+            multiline 
+            placeholder="Write your update here..."
+          />
           <ChoiceRow label="Category" values={categories} selected={form.category} onSelect={(category) => setForm((current) => ({ ...current, category }))} />
           <ChoiceRow label="Status" values={statuses} selected={form.status} onSelect={(status) => setForm((current) => ({ ...current, status }))} />
 

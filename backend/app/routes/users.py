@@ -5,8 +5,8 @@ from sqlalchemy import or_
 from typing import Optional
 from ..database import get_db
 from ..models import User, Follow, Post, Bookmark, Expert
-from ..schemas import UserOut, UserUpdate, PostOut
-from ..auth import get_current_user, get_optional_current_user
+from ..schemas import UserOut, UserUpdate, PostOut, AdminUserUpdate
+from ..auth import get_current_user, get_optional_current_user, get_current_active_superuser
 from ..utils.storage import upload_file, delete_file
 from ..utils.post_helpers import attach_interaction_data
 
@@ -20,8 +20,45 @@ def populate_user_counts(user: User, db: Session):
     # Check if user has a linked expert profile
     expert = db.query(Expert).filter(Expert.user_id == user.id, Expert.is_claimed == True).first()
     user.is_expert = expert is not None
+    if expert:
+        user.expert_profile = {
+            "field": expert.csv_field,
+            "keywords": expert.csv_keywords
+        }
+    else:
+        user.expert_profile = None
     
     return user
+
+
+@router.put("/{user_id}/admin", response_model=UserOut)
+def admin_update_user(
+    user_id: int,
+    data: AdminUserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_superuser),
+):
+    """
+    Admin-only route to update sensitive user fields like role and ardd_meta.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+    
+    if "role" in update_data:
+        user.role = update_data["role"]
+    if "is_superuser" in update_data:
+        user.is_superuser = update_data["is_superuser"]
+    if "ardd_meta" in update_data:
+        current_meta = dict(user.ardd_meta or {})
+        current_meta.update(update_data["ardd_meta"])
+        user.ardd_meta = current_meta
+
+    db.commit()
+    db.refresh(user)
+    return populate_user_counts(user, db)
 
 
 @router.get("/me", response_model=UserOut)

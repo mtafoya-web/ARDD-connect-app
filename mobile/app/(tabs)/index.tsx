@@ -21,6 +21,7 @@ export default function FeedScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostText, setNewPostText] = useState('');
   const [posting, setPosting] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -86,9 +87,11 @@ export default function FeedScreen() {
       // Backend route is POST /posts/ (trailing slash) and expects `content`,
       // not `/posts` with `body`. The old form would 307-redirect AND 422.
       await apiClient.post('/posts/', { 
+        title: newPostTitle.trim(),
         content: newPostText.trim(),
         category: postCategory
       });
+      setNewPostTitle('');
       setNewPostText('');
       setCategory('general');
       fetchPosts();
@@ -152,25 +155,41 @@ export default function FeedScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
             <Avatar name={user.full_name} size={34} />
-            <TextInput
-              value={newPostText}
-              onChangeText={setNewPostText}
-              placeholder="What's on your mind?"
-              placeholderTextColor={Colors.textTertiary}
-              multiline
-              style={{
-                flex: 1,
-                fontFamily: Fonts.regular,
-                fontSize: 14,
-                color: Colors.textPrimary,
-                minHeight: 60,
-                textAlignVertical: 'top',
-                padding: 10,
-                backgroundColor: Colors.inputBg,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-              }}
-            />
+            <View style={{ flex: 1, gap: 10 }}>
+              <TextInput
+                value={newPostTitle}
+                onChangeText={setNewPostTitle}
+                placeholder="Add a title (optional)"
+                placeholderTextColor={Colors.textTertiary}
+                style={{
+                  fontFamily: Fonts.semiBold,
+                  fontSize: 16,
+                  color: Colors.textPrimary,
+                  padding: 10,
+                  backgroundColor: Colors.inputBg,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                }}
+              />
+              <TextInput
+                value={newPostText}
+                onChangeText={setNewPostText}
+                placeholder="What's on your mind?"
+                placeholderTextColor={Colors.textTertiary}
+                multiline
+                style={{
+                  fontFamily: Fonts.regular,
+                  fontSize: 14,
+                  color: Colors.textPrimary,
+                  minHeight: 60,
+                  textAlignVertical: 'top',
+                  padding: 10,
+                  backgroundColor: Colors.inputBg,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                }}
+              />
+            </View>
           </View>
 
           {isAuthorized && (

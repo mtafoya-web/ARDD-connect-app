@@ -47,6 +47,7 @@ const LoadingPost = () => (
 export const FeedPage = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostMedia, setNewPostMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,11 +196,13 @@ export const FeedPage = () => {
     try {
       setPosting(true);
       await client.post('/posts/', {
+        title: newPostTitle.trim(),
         content: location ? `${newPostContent.trim()}
 
 📍 ${location.trim()}` : newPostContent.trim(),
         media: newPostMedia,
       });
+      setNewPostTitle('');
       setNewPostContent('');
       setNewPostMedia([]);
       setLocation('');
@@ -301,14 +304,21 @@ export const FeedPage = () => {
 
             <div className="mt-6 flex items-start gap-4">
               <Avatar name={user?.full_name} username={user?.username} url={user?.profile_photo_url} />
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 space-y-4">
+                <input
+                  type="text"
+                  value={newPostTitle}
+                  onChange={(e) => setNewPostTitle(e.target.value)}
+                  placeholder="Add a title (optional)"
+                  className="w-full rounded-2xl border border-border-secondary bg-surface-muted px-5 py-3 text-lg font-bold text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15"
+                />
                 <textarea
                   ref={textareaRef}
                   value={newPostContent}
                   onChange={(e) => setNewPostContent(e.target.value)}
                   placeholder={`What's on your mind, ${firstName}?`}
-                  className="min-h-[180px] w-full resize-none rounded-3xl border border-border-secondary bg-surface-muted px-5 py-4 text-[15px] leading-7 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15"
-                  rows={6}
+                  className="min-h-[140px] w-full resize-none rounded-3xl border border-border-secondary bg-surface-muted px-5 py-4 text-[15px] leading-7 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15"
+                  rows={4}
                 />
 
                 <div className="mt-5 rounded-3xl border border-border-secondary bg-surface-muted p-4">

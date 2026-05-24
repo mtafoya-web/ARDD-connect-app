@@ -20,6 +20,12 @@ const tiles = [
     icon: 'document-text-outline',
     route: '/admin/posts',
   },
+  {
+    title: 'Users',
+    subtitle: 'Manage attendee roles, experts, and permissions.',
+    icon: 'people-outline',
+    route: '/admin/users',
+  },
 ] as const;
 
 export default function AdminDashboardScreen() {

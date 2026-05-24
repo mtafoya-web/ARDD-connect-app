@@ -31,6 +31,7 @@ import EditEvent from './pages/admin/EditEvent';
 import ManagePosts from './pages/admin/ManagePosts';
 import CreatePost from './pages/admin/CreatePost';
 import EditPost from './pages/admin/EditPost';
+import ManageUsers from './pages/admin/ManageUsers';
 
 function App() {
   return (
@@ -147,6 +148,14 @@ function App() {
           element={
             <ProtectedRoute adminOnly>
               <EditPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute adminOnly>
+              <ManageUsers />
             </ProtectedRoute>
           }
         />

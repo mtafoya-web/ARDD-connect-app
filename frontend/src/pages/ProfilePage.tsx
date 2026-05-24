@@ -234,8 +234,13 @@ export const ProfilePage = () => {
 
             <div className="flex flex-wrap gap-2">
               {profile.role && (
-                <span className="rounded-full bg-surface-muted px-3 py-1.5 text-sm font-semibold text-foreground-secondary">
+                <span className="rounded-full bg-accent-soft px-3 py-1.5 text-sm font-bold uppercase tracking-widest text-accent">
                   {profile.role}
+                </span>
+              )}
+              {profile.is_expert && profile.expert_profile?.field && (
+                <span className="rounded-full bg-surface-muted px-3 py-1.5 text-sm font-semibold text-foreground-secondary">
+                  {profile.expert_profile.field}
                 </span>
               )}
               {profile.area_of_study && (
@@ -249,6 +254,16 @@ export const ProfilePage = () => {
                 </span>
               )}
             </div>
+
+            {profile.is_expert && profile.expert_profile?.keywords && (
+              <div className="flex flex-wrap gap-2 border-t border-border-secondary pt-4">
+                {profile.expert_profile.keywords.split(',').map((kw: string) => (
+                  <span key={kw} className="rounded-md border border-border-secondary px-2 py-0.5 text-xs font-medium text-foreground-tertiary">
+                    #{kw.trim()}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
