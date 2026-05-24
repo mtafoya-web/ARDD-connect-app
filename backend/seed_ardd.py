@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import SessionLocal
-from app.models import User, Event
+from app.models import User, Event, Post, Bookmark, Like, Notification, Follow, Message, Expert
 from app.auth import hash_password
 
 load_dotenv()
@@ -46,6 +46,7 @@ ATTENDEES = [
         "research_interests": "Aging clocks, partial reprogramming, multi-omics integration, in-vivo validation of rejuvenation.",
         "looking_for": "Biotech collaborators to validate aging clocks on their in-vivo reprogramming data; translational partners.",
         "location": "Stanford, CA",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180223_1779579164691_image_1.jpeg",
         "ardd_meta": {
             "role": "academic_pi",
             "orgType": "academia",
@@ -68,6 +69,7 @@ ATTENDEES = [
         "research_interests": "In-vivo OSK delivery, epigenetic age reversal, safety profiling.",
         "looking_for": "Series A leads, computational aging collaborators to validate in-vivo readouts, translational hires.",
         "location": "Boston, MA",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180236_1779579164867_image_2.jpeg",
         "ardd_meta": {
             "role": "biotech_founder",
             "orgType": "biotech",
@@ -91,6 +93,7 @@ ATTENDEES = [
         "research_interests": "Senolytics, proteostasis collapse with age, mitochondrial dysfunction crosstalk.",
         "looking_for": "Academic collaborators with novel senescence models; KOL conversations on translational endpoints.",
         "location": "South San Francisco, CA",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180245_1779579165243_image_3.jpeg",
         "ardd_meta": {
             "role": "biotech_scientist",
             "orgType": "biotech",
@@ -114,6 +117,7 @@ ATTENDEES = [
         "research_interests": "Therapeutic modalities, clinical-stage geroscience, biomarker-driven trials.",
         "looking_for": "License-in candidates in senolytics and metabolic geroscience; clinical-stage partners.",
         "location": "New York, NY",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180257_1779579165402_image_4.jpeg",
         "ardd_meta": {
             "role": "pharma_bd",
             "orgType": "pharma",
@@ -136,6 +140,7 @@ ATTENDEES = [
         "research_interests": "Aging clocks, longevity biomarkers, AI-for-discovery platforms.",
         "looking_for": "Pre-seed and seed founders building biomarker or AI discovery platforms; KOL intros.",
         "location": "Zurich, CH",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180268_1779579165524_image_5.jpeg",
         "ardd_meta": {
             "role": "investor_family_office",
             "orgType": "family_office",
@@ -158,6 +163,7 @@ ATTENDEES = [
         "research_interests": "Senescence-immune crosstalk, immune aging clocks, cancer-aging interface.",
         "looking_for": "Biotech partners for senolytic-immune combinations; KOL conversations.",
         "location": "Rehovot, IL",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180283_1779579165695_image_6.jpeg",
         "ardd_meta": {
             "role": "academic_pi",
             "orgType": "academia",
@@ -180,6 +186,7 @@ ATTENDEES = [
         "research_interests": "ML for aging clocks, generative models for senolytics, multi-omics.",
         "looking_for": "Postdoc candidates; biotech collaborators with proprietary aging-clock datasets.",
         "location": "San Francisco, CA",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180297_1779579165795_image_7.jpeg",
         "ardd_meta": {
             "role": "academic_pi",
             "orgType": "academia",
@@ -202,6 +209,7 @@ ATTENDEES = [
         "research_interests": "Partial reprogramming, senolytics, cell and gene therapy for aging.",
         "looking_for": "Seed and Series A founders in therapeutic modalities; clinical-stage geroscience.",
         "location": "London, UK",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180313_1779579165938_image_8.jpeg",
         "ardd_meta": {
             "role": "investor_vc",
             "orgType": "vc",
@@ -224,6 +232,7 @@ ATTENDEES = [
         "research_interests": "Methylation clocks, proteomic clocks, CLIA validation.",
         "looking_for": "Pharma partners for trial endpoints; KOL clinicians; Series A co-leads.",
         "location": "Boston, MA",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180327_1779579166075_image_9.jpeg",
         "ardd_meta": {
             "role": "biotech_founder",
             "orgType": "biotech",
@@ -247,6 +256,7 @@ ATTENDEES = [
         "research_interests": "Senolytics, fibrosis-aging axis, target ID.",
         "looking_for": "Academic targets and tool-compound collaborations; KOL conversations.",
         "location": "Cambridge, MA",
+        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180339_1779579166271_image_10.jpeg",
         "ardd_meta": {
             "role": "pharma_scientist",
             "orgType": "pharma",
@@ -516,13 +526,59 @@ INTERESTS_BY_USERNAME = {
 
 def reset_seed(db: Session) -> None:
     """Remove every previously seeded row (ardd_meta.seed == True)."""
+    # Find seeded users first
+    seeded_user_ids = [u.id for u in db.query(User).filter(
+        User.ardd_meta["seed"].as_string() == "true"
+    ).all()]
+    
+    if seeded_user_ids:
+        # 1. Delete notifications involving these users
+        db.query(Notification).filter(or_(
+            Notification.user_id.in_(seeded_user_ids),
+            Notification.actor_id.in_(seeded_user_ids)
+        )).delete(synchronize_session=False)
+
+        # 2. Delete messages involving these users
+        db.query(Message).filter(or_(
+            Message.sender_id.in_(seeded_user_ids),
+            Message.receiver_id.in_(seeded_user_ids)
+        )).delete(synchronize_session=False)
+
+        # 3. Delete follows involving these users
+        db.query(Follow).filter(or_(
+            Follow.follower_id.in_(seeded_user_ids),
+            Follow.following_id.in_(seeded_user_ids)
+        )).delete(synchronize_session=False)
+
+        # 4. Delete bookmarks
+        db.query(Bookmark).filter(Bookmark.user_id.in_(seeded_user_ids)).delete(synchronize_session=False)
+
+        # 5. Delete likes on posts from these users OR likes from these users
+        seeded_post_ids = [p.id for p in db.query(Post).filter(Post.user_id.in_(seeded_user_ids)).all()]
+        if seeded_post_ids:
+            # Nullify parent_ids that point to posts we are about to delete
+            db.query(Post).filter(Post.parent_id.in_(seeded_post_ids)).update({"parent_id": None}, synchronize_session=False)
+            db.query(Like).filter(Like.post_id.in_(seeded_post_ids)).delete(synchronize_session=False)
+        db.query(Like).filter(Like.user_id.in_(seeded_user_ids)).delete(synchronize_session=False)
+
+        # 6. Delete posts
+        db.query(Post).filter(Post.user_id.in_(seeded_user_ids)).delete(synchronize_session=False)
+        
+        # 7. Unlink experts
+        db.query(Expert).filter(Expert.user_id.in_(seeded_user_ids)).update(
+            {"user_id": None, "is_claimed": False, "claimed_at": None, "verified_by_admin": False},
+            synchronize_session=False
+        )
+
     # Postgres JSON cast trick: cast text and check
     deleted_events = db.query(Event).filter(
         Event.ardd_meta["seed"].as_string() == "true"
     ).delete(synchronize_session=False)
+    
     deleted_users = db.query(User).filter(
         User.ardd_meta["seed"].as_string() == "true"
     ).delete(synchronize_session=False)
+    
     db.commit()
     print(f"[reset] deleted {deleted_users} users, {deleted_events} events")
 
