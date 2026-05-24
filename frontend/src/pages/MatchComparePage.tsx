@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Sparkles, ArrowRightLeft, Users2, Briefcase, Target, Clock, Quote } from 'lucide-react';
-import client from '../api/client';
 import { Avatar } from '../components/Avatar';
 import type { ARDDMatchCompareResponse, ARDDMatchPublicProfile } from '../types';
+import { compareMatch } from '../services/matchesService';
+import { toNumericId, InvalidIdError } from '../lib/ids';
 
 const SCENARIO_LABELS: Record<string, string> = {
   investor_meets_startup: 'Investor ↔ Startup',
@@ -140,13 +141,31 @@ export const MatchComparePage = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Path param must be a positive integer; bail early so we don't
+    // send "undefined" or "NaN" to the backend and trigger a 422.
+    if (toNumericId(candidateId) === null) {
+      setError('Invalid candidate id');
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
         setLoading(true);
-        const res = await client.get<ARDDMatchCompareResponse>(`/matches/compare/${candidateId}`);
-        if (!cancelled) setData(res.data);
+        const result = await compareMatch(candidateId);
+        if (!cancelled) {
+          if (!result) {
+            setError('Match data was malformed');
+          } else {
+            setData(result);
+          }
+        }
       } catch (err: any) {
-        if (!cancelled) setError(err.response?.data?.detail || 'Failed to load match');
+        if (cancelled) return;
+        if (err instanceof InvalidIdError) {
+          setError('Invalid candidate id');
+        } else {
+          setError(err.response?.data?.detail || 'Failed to load match');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

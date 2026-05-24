@@ -3,26 +3,15 @@ import { Calendar, MapPin, Clock, ArrowRight, Sparkles, Star, StarOff, Users2 } 
 import { Link } from 'react-router-dom';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Event } from '../types';
+import { Event, SessionDTO } from '../types';
+import {
+  getRecommendedSessions,
+  getMySessions,
+  starSession,
+} from '../services/sessionsService';
+import { InvalidIdError } from '../lib/ids';
 
 type Tab = 'program' | 'recommended' | 'my';
-
-interface SessionDTO {
-  id: number;
-  title: string;
-  description: string;
-  location: string;
-  start_date: string;
-  end_date: string;
-  sessionType?: string;
-  topicTags?: string[];
-  speakers?: { name: string; affiliation?: string }[];
-  room?: string;
-  track?: string;
-  score?: number | null;
-  reasons?: string[] | null;
-  starred?: boolean;
-}
 
 const FOCUS_LABELS: Record<string, string> = {
   compbio_aging: 'Computational aging',
@@ -204,8 +193,8 @@ const EventsPage = () => {
     setSessionsError('');
 
     try {
-      const res = await client.get<SessionDTO[]>('/sessions/recommended?limit=20');
-      setRecommended(res.data);
+      const items = await getRecommendedSessions(20);
+      setRecommended(items);
     } catch (err: any) {
       if (err.response?.status === 401) {
         setSessionsError('Sign in to see recommended sessions.');
@@ -229,8 +218,8 @@ const EventsPage = () => {
     setSessionsError('');
 
     try {
-      const res = await client.get<SessionDTO[]>('/sessions/my');
-      setMy(res.data);
+      const items = await getMySessions();
+      setMy(items);
     } catch (err: any) {
       if (err.response?.status === 401) {
         setSessionsError('Sign in to see your schedule.');
@@ -254,7 +243,9 @@ const EventsPage = () => {
     }
 
     try {
-      await client.post(`/sessions/${id}/star`, { star: next });
+      // Service validates `id` is a positive integer before hitting the
+      // backend, so /sessions/{id}/star never receives "NaN" or "undefined".
+      await starSession(id, next);
 
       if (tab === 'recommended') {
         loadRecommended();
@@ -264,7 +255,9 @@ const EventsPage = () => {
         loadMy();
       }
     } catch (err: any) {
-      if (err.response?.status === 401) {
+      if (err instanceof InvalidIdError) {
+        setSessionsError('Could not save: invalid session id.');
+      } else if (err.response?.status === 401) {
         setSessionsError('Sign in to save sessions to your schedule.');
       } else {
         setSessionsError(err.response?.data?.detail || 'Star toggle failed');

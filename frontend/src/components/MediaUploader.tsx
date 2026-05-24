@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, X, FileText, Image as ImageIcon, Film } from 'lucide-react';
-import client from '../api/client';
 import { MediaItem } from '../types';
+import { uploadMedia } from '../services/mediaService';
 
 interface MediaUploaderProps {
   media: MediaItem[];
@@ -21,18 +21,12 @@ const MediaUploader = ({ media, onChange }: MediaUploaderProps) => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const formData = new FormData();
-      formData.append('file', file);
-
       try {
-        const response = await client.post('/media/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
+        const result = await uploadMedia(file);
         newMedia.push({
-          type: response.data.resource_type,
-          url: response.data.url,
-          publicId: response.data.public_id,
+          type: result.resource_type,
+          url: result.url,
+          publicId: result.public_id,
         });
       } catch (error) {
         console.error('Upload error:', error);

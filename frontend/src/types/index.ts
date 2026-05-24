@@ -82,11 +82,28 @@ export interface ARDDMatchCompareResponse {
   reasons: ARDDMatchExplanation;
 }
 
+export interface UserPhotoResponse {
+  profile_photo_url: string;
+  profile_photo_public_id?: string;
+}
+
 export interface MediaItem {
   type: string;
   url: string;
   publicId?: string;
   altText?: string;
+}
+
+/**
+ * Shape returned by POST /media/upload. Resource type is normalized to
+ * "image" | "video" by the backend (Cloudinary's 'auto' resolves it),
+ * but we keep it as `string` to stay forward-compatible.
+ */
+export interface MediaUploadResult {
+  url: string;
+  public_id: string;
+  format: string;
+  resource_type: string;
 }
 
 export interface Post {
@@ -155,6 +172,78 @@ export interface RegisterPayload {
 export interface LoginPayload {
   username: string;
   password: string;
+}
+
+/**
+ * /auth/password-reset/request optionally includes `reset_token` so the
+ * demo flow can prefill the confirmation form without going through email.
+ * Production deployments would strip it server-side.
+ */
+export interface PasswordResetRequestResponse {
+  message: string;
+  reset_token?: string;
+}
+
+export interface PasswordResetConfirmResponse {
+  message: string;
+}
+
+export interface BotSessionRef {
+  id: number;
+  title: string;
+  start_date?: string;
+  end_date?: string;
+  location?: string;
+  room?: string;
+  sessionType?: string;
+}
+
+/**
+ * Backend returns several attachment shapes (`session`, `match`, `post`).
+ * The UI only renders `session` today; the others pass through untyped so
+ * future renderers can opt in without a normalizer change.
+ */
+export interface BotAttachment {
+  type: string;
+  session?: BotSessionRef;
+  match?: unknown;
+  post_id?: number;
+  sentiment?: string;
+  takeaway?: string;
+}
+
+export interface BotReply {
+  intent: string;
+  response: string;
+  attachments: BotAttachment[];
+}
+
+export interface BotIntent {
+  intent: string;
+  label: string;
+  sample: string;
+}
+
+export interface SessionDTO {
+  id: number;
+  title: string;
+  description: string;
+  location: string;
+  start_date: string;
+  end_date: string;
+  sessionType?: string;
+  topicTags?: string[];
+  speakers?: { name: string; affiliation?: string }[];
+  room?: string;
+  track?: string;
+  score?: number | null;
+  reasons?: string[] | null;
+  starred?: boolean;
+}
+
+export interface StarSessionResponse {
+  starred: boolean;
+  sessionsOfInterest: number[];
 }
 
 export interface Message {

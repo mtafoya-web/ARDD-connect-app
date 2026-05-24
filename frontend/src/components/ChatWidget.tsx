@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import client from '../api/client';
 import { buildWebSocketURL } from '../api/ws';
 import { User, Message, Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { Send, MessageSquare, X, Minimize2, Maximize2, ChevronDown, Search } from 'lucide-react';
+import { getConversations, getMessages } from '../services/messagesService';
+import { listUsers } from '../services/usersService';
 
 const formatTime = (dateStr: string) => {
   if (!dateStr) return '';
@@ -45,8 +46,8 @@ export const ChatWidget = () => {
     if (query.trim().length > 1) {
       setIsSearching(true);
       try {
-        const response = await client.get('/users', { params: { q: query } });
-        setSearchResults(response.data.filter((u: User) => u.id !== user?.id));
+        const items = await listUsers(query);
+        setSearchResults(items.filter((u: User) => u.id !== user?.id));
       } catch (err) {
         console.error('Search failed:', err);
       }
@@ -115,8 +116,8 @@ export const ChatWidget = () => {
 
   const fetchConversations = async () => {
     try {
-      const response = await client.get('/messages/conversations');
-      setConversations(response.data);
+      const items = await getConversations();
+      setConversations(items);
     } catch (err) {
       console.error('Failed to fetch conversations:', err);
     }
@@ -124,8 +125,8 @@ export const ChatWidget = () => {
 
   const fetchMessages = async (otherUserId: number) => {
     try {
-      const response = await client.get(`/messages/${otherUserId}`);
-      setMessages(response.data);
+      const items = await getMessages(otherUserId);
+      setMessages(items);
     } catch (err) {
       console.error('Failed to fetch messages:', err);
     }

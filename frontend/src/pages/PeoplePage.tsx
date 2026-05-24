@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import client from '../api/client';
-import type { User, ARDDMatchesResponse, ARDDMatchCard } from '../types';
+import type { User, ARDDMatchCard } from '../types';
 import { ProfileCard } from '../components/ProfileCard';
 import { MatchCard } from '../components/MatchCard';
 import { Filter, Search, UsersRound, Sparkles } from 'lucide-react';
+import { getMyMatches } from '../services/matchesService';
+import { listUsers } from '../services/usersService';
 
 type Tab = 'directory' | 'matches';
 
@@ -38,10 +39,10 @@ export const PeoplePage = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await client.get<User[]>('/users/');
-      setUsers(response.data || []);
+      const items = await listUsers();
+      setUsers(items);
       const uniqueAreas = Array.from(
-        new Set(response.data?.map((u) => u.area_of_study).filter(Boolean))
+        new Set(items.map((u) => u.area_of_study).filter(Boolean))
       ) as string[];
       setAreas(uniqueAreas.sort());
     } catch (err: any) {
@@ -55,8 +56,10 @@ export const PeoplePage = () => {
     try {
       setMatchesLoading(true);
       setMatchesError('');
-      const response = await client.get<ARDDMatchesResponse>('/matches/me');
-      setMatches(response.data.matches || []);
+      // Service normalizes the envelope; we map over .matches because
+      // the backend wraps the list inside `{ me, matches }`.
+      const data = await getMyMatches();
+      setMatches(data.matches);
       setMatchesLoaded(true);
     } catch (err: any) {
       if (err.response?.status === 401) {

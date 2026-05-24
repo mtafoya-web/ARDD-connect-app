@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import client from '../api/client';
 import { ArrowLeft, Save, Upload, X, Camera } from 'lucide-react';
+import {
+  getMe,
+  updateMe,
+  uploadMyPhoto,
+  removeMyPhoto,
+} from '../services/usersService';
 
 const inputClass =
   'w-full rounded-lg border border-border-secondary bg-canvas px-4 py-3 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-accent/40 focus:bg-surface focus:ring-4 focus:ring-accent/15';
@@ -38,18 +43,22 @@ export const EditProfilePage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await client.get('/users/me');
+      const me = await getMe();
+      if (!me) {
+        setError('Failed to load profile');
+        return;
+      }
       setFormData({
-        full_name: response.data.full_name || '',
-        bio: response.data.bio || '',
-        affiliation: response.data.affiliation || '',
-        role: response.data.role || '',
-        area_of_study: response.data.area_of_study || '',
-        research_interests: response.data.research_interests || '',
-        looking_for: response.data.looking_for || '',
-        location: response.data.location || '',
-        website: response.data.website || '',
-        profile_photo_url: response.data.profile_photo_url || '',
+        full_name: me.full_name || '',
+        bio: me.bio || '',
+        affiliation: me.affiliation || '',
+        role: me.role || '',
+        area_of_study: me.area_of_study || '',
+        research_interests: me.research_interests || '',
+        looking_for: me.looking_for || '',
+        location: me.location || '',
+        website: me.website || '',
+        profile_photo_url: me.profile_photo_url || '',
       });
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load profile');
@@ -77,14 +86,10 @@ export const EditProfilePage = () => {
 
     setUploading(true);
     setError('');
-    const uploadData = new FormData();
-    uploadData.append('file', file);
 
     try {
-      const response = await client.post('/users/me/photo', uploadData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setFormData(prev => ({ ...prev, profile_photo_url: response.data.profile_photo_url }));
+      const result = await uploadMyPhoto(file);
+      setFormData(prev => ({ ...prev, profile_photo_url: result.profile_photo_url }));
       await refreshUser();
       setSuccess('Profile photo updated.');
     } catch (err: any) {
@@ -98,7 +103,7 @@ export const EditProfilePage = () => {
     if (!window.confirm('Remove profile photo?')) return;
     try {
       setUploading(true);
-      await client.delete('/users/me/photo');
+      await removeMyPhoto();
       setFormData(prev => ({ ...prev, profile_photo_url: '' }));
       await refreshUser();
       setSuccess('Profile photo removed.');
@@ -116,12 +121,12 @@ export const EditProfilePage = () => {
     setSaving(true);
 
     try {
-      await client.put('/users/me', formData);
+      await updateMe(formData);
       await refreshUser();
       setSuccess('Profile updated successfully.');
       setTimeout(async () => {
-        const response = await client.get('/users/me');
-        navigate(`/profile/${response.data.id}`);
+        const me = await getMe();
+        if (me) navigate(`/profile/${me.id}`);
       }, 900);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to update profile');

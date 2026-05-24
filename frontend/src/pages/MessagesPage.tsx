@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import client from '../api/client';
 import { buildWebSocketURL } from '../api/ws';
 import { User, Message, Conversation } from '../types';
 import { Avatar } from '../components/Avatar';
 import { Send, MessageSquare, UserPlus, Search } from 'lucide-react';
+import { getConversations, getMessages } from '../services/messagesService';
+import { getUser, listUsers } from '../services/usersService';
+import { toNumericId } from '../lib/ids';
 
 const formatTime = (dateStr: string) => {
   if (!dateStr) return '';
@@ -49,15 +51,19 @@ export const MessagesPage = () => {
     init();
   }, []);
 
-  // Handle targetUserId from query params
+  // Handle targetUserId from query params. URL-supplied values are
+  // untrusted, so coerce through toNumericId — `?userId=abc` would
+  // otherwise yield NaN and we'd request /users/NaN.
   useEffect(() => {
     if (targetUserId && !loading) {
-      const existingConv = conversations.find(c => c.user.id === parseInt(targetUserId));
+      const parsedId = toNumericId(targetUserId);
+      if (parsedId === null) return;
+      const existingConv = conversations.find(c => c.user.id === parsedId);
       if (existingConv) {
         setSelectedConversation(existingConv);
       } else {
         // Fetch user info to start a new conversation
-        fetchTargetUser(parseInt(targetUserId));
+        fetchTargetUser(parsedId);
       }
     }
   }, [targetUserId, loading, conversations]);
@@ -76,8 +82,8 @@ export const MessagesPage = () => {
 
   const fetchTargetUser = async (id: number) => {
     try {
-      const response = await client.get(`/users/${id}`);
-      const targetUser = response.data;
+      const targetUser = await getUser(id);
+      if (!targetUser) return;
       setSelectedConversation({
         user: targetUser,
         last_message: '',
@@ -130,8 +136,11 @@ export const MessagesPage = () => {
 
   const fetchConversations = async () => {
     try {
-      const response = await client.get('/messages/conversations');
-      setConversations(response.data);
+      // /messages/conversations is derived server-side from the Message
+      // table (no Conversation table exists), so call it whenever we
+      // need a fresh list — including after a new inbound WS event.
+      const items = await getConversations();
+      setConversations(items);
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch conversations:', err);
@@ -141,8 +150,8 @@ export const MessagesPage = () => {
 
   const fetchMessages = async (otherUserId: number) => {
     try {
-      const response = await client.get(`/messages/${otherUserId}`);
-      setMessages(response.data);
+      const items = await getMessages(otherUserId);
+      setMessages(items);
     } catch (err) {
       console.error('Failed to fetch messages:', err);
     }
@@ -176,9 +185,10 @@ export const MessagesPage = () => {
     if (query.trim().length > 1) {
       setIsSearching(true);
       try {
-        const response = await client.get('/users', { params: { q: query } });
-        // Filter out current user from search results
-        setSearchResults(response.data.filter((u: User) => u.id !== user?.id));
+        // Service hits /users/ (trailing slash) so we don't get a
+        // FastAPI 307 redirect that drops headers on some clients.
+        const items = await listUsers(query);
+        setSearchResults(items.filter((u: User) => u.id !== user?.id));
       } catch (err) {
         console.error('Search failed:', err);
       }

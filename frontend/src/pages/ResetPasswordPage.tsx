@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import client from '../api/client';
 import { ArrowLeft, KeyRound, Send } from 'lucide-react';
 import { ArddLogo } from '../components/ArddLogo';
+import { requestPasswordReset, confirmPasswordReset } from '../services/authService';
 
 const fieldClass =
   'w-full rounded-lg border border-border-secondary bg-surface-muted px-4 py-3 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15';
@@ -22,10 +22,13 @@ export const ResetPasswordPage = () => {
     setLoading(true);
 
     try {
-      const response = await client.post('/auth/password-reset/request', { identifier });
-      setMessage(response.data.message);
-      if (response.data.reset_token) {
-        setToken(response.data.reset_token);
+      const result = await requestPasswordReset(identifier);
+      setMessage(result.message);
+      // Demo flow returns the reset token directly so users can complete
+      // the confirm step without checking email. Production deployments
+      // strip this server-side.
+      if (result.reset_token) {
+        setToken(result.reset_token);
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Could not authorize that email or phone number.');
@@ -41,8 +44,8 @@ export const ResetPasswordPage = () => {
     setLoading(true);
 
     try {
-      const response = await client.post('/auth/password-reset/confirm', { token, password });
-      setMessage(response.data.message);
+      const result = await confirmPasswordReset(token, password);
+      setMessage(result.message);
       setPassword('');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Password reset failed.');

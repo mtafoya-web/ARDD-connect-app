@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import client, { clearStoredAuth } from '../api/client';
+import { clearStoredAuth } from '../api/client';
 import { User, RegisterPayload, LoginPayload, AuthResponse } from '../types';
+import * as authService from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -57,9 +58,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
-        const response = await client.get<User>('/users/me');
-        setUser(response.data);
-        localStorage.setItem('ardd_user', JSON.stringify(response.data));
+        const currentUser = await authService.getCurrentUser();
+        if (!currentUser) {
+          // Token came back without a usable user — treat as invalid.
+          throw new Error('Invalid /users/me payload');
+        }
+        setUser(currentUser);
+        localStorage.setItem('ardd_user', JSON.stringify(currentUser));
       } catch {
         clearStoredAuth();
         setToken(null);
@@ -87,31 +92,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (payload: RegisterPayload) => {
-    await client.post('/auth/register', payload);
+    await authService.register(payload);
   };
 
   const login = async (payload: LoginPayload) => {
     clearStoredAuth();
     setToken(null);
     setUser(null);
-
-    // Send as form data for OAuth2PasswordRequestForm
-    const formData = new URLSearchParams();
-    formData.append('username', payload.username);
-    formData.append('password', payload.password);
-
-    const response = await client.post<AuthResponse>('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-
-    saveSession(response.data);
+    // Service handles the form-urlencoded encoding required by
+    // FastAPI's OAuth2PasswordRequestForm — don't recreate that here.
+    const response = await authService.login(payload);
+    saveSession(response);
   };
 
   const googleLogin = async (credential: string) => {
-    const response = await client.post<AuthResponse>('/auth/google', { credential });
-    saveSession(response.data);
+    const response = await authService.googleLogin(credential);
+    saveSession(response);
   };
 
   const logout = () => {
@@ -122,9 +118,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshUser = async () => {
     if (!token) return;
-    const response = await client.get<User>('/users/me');
-    setUser(response.data);
-    localStorage.setItem('ardd_user', JSON.stringify(response.data));
+    const currentUser = await authService.getCurrentUser();
+    if (!currentUser) return;
+    setUser(currentUser);
+    localStorage.setItem('ardd_user', JSON.stringify(currentUser));
   };
 
   return (

@@ -3,6 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 import { User, Post } from '../types';
+import {
+  getUser,
+  getUserPosts,
+  getUserBookmarks,
+} from '../services/usersService';
 import { Avatar } from '../components/Avatar';
 import { PostCard } from '../components/PostCard';
 import {
@@ -62,8 +67,12 @@ export const ProfilePage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await client.get<User>(`/users/${id}`);
-      setProfile(response.data);
+      const me = await getUser(id);
+      if (!me) {
+        setError('Profile not found');
+        return;
+      }
+      setProfile(me);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load profile');
     } finally {
@@ -73,8 +82,8 @@ export const ProfilePage = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await client.get<Post[]>(`/users/${id}/posts`);
-      setPosts(response.data);
+      const items = await getUserPosts(id);
+      setPosts(items);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
     }
@@ -85,8 +94,8 @@ export const ProfilePage = () => {
       return;
     }
     try {
-      const response = await client.get<Post[]>(`/users/${currentUser.id}/bookmarks`);
-      setBookmarks(response.data);
+      const items = await getUserBookmarks(currentUser.id);
+      setBookmarks(items);
     } catch (err) {
       console.error('Failed to fetch saved posts:', err);
       setBookmarks([]);

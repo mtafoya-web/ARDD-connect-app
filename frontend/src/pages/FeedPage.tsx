@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 import { MediaItem, Post } from '../types';
+import { uploadMedia } from '../services/mediaService';
 import { PostCard } from '../components/PostCard';
 import { Avatar } from '../components/Avatar';
 import { Suggestions } from '../components/Suggestions';
@@ -14,7 +15,6 @@ import {
   Film,
   FlaskConical,
   Image,
-  Lock,
   MapPin,
   Send,
   Smile,
@@ -163,18 +163,15 @@ export const FeedPage = () => {
         continue;
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
-
       try {
-        const response = await client.post('/media/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
+        const result = await uploadMedia(file);
+        // expectedType is the caller-provided category ('image' | 'video')
+        // we filtered for above; we trust it over the server's resource_type
+        // here because the UI groups by category in the composer.
         uploadedItems.push({
           type: expectedType,
-          url: response.data.url,
-          publicId: response.data.public_id,
+          url: result.url,
+          publicId: result.public_id,
         });
       } catch (err) {
         console.error('Media upload failed:', err);
@@ -297,18 +294,9 @@ export const FeedPage = () => {
             onSubmit={handlePostSubmit}
             className="mb-5 rounded-3xl border border-border-secondary bg-surface p-6 shadow-sm"
           >
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground-primary">Create post</h2>
-                <p className="mt-1 text-sm text-foreground-secondary">Share an update with your community.</p>
-              </div>
-              <button
-                type="button"
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-border-secondary bg-surface px-3 text-sm text-foreground-secondary hover:border-border-primary hover:bg-surface-muted"
-              >
-                <Lock size={14} />
-                Only me
-              </button>
+            <div>
+              <h2 className="text-xl font-semibold text-foreground-primary">Create post</h2>
+              <p className="mt-1 text-sm text-foreground-secondary">Share an update with your community.</p>
             </div>
 
             <div className="mt-6 flex items-start gap-4">

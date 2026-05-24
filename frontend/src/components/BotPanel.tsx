@@ -1,32 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, X, Minimize2, Maximize2, Sparkles, Bot } from 'lucide-react';
-import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
-
-interface BotAttachment {
-  type: string;
-  session?: {
-    id: number;
-    title: string;
-    start_date?: string;
-    end_date?: string;
-    location?: string;
-    room?: string;
-    sessionType?: string;
-  };
-}
-
-interface BotReply {
-  intent: string;
-  response: string;
-  attachments?: BotAttachment[];
-}
-
-interface BotIntent {
-  intent: string;
-  label: string;
-  sample: string;
-}
+import { getBotIntents, queryBot } from '../services/botService';
+import type { BotIntent, BotReply } from '../types';
 
 type BotTurn =
   | { role: 'user'; text: string }
@@ -44,9 +20,8 @@ export const BotPanel = () => {
 
   useEffect(() => {
     if (!isOpen) return;
-    client
-      .get<BotIntent[]>('/bot/intents')
-      .then((res) => setIntents(res.data))
+    getBotIntents()
+      .then(setIntents)
       .catch(() => {});
   }, [isOpen]);
 
@@ -80,8 +55,8 @@ export const BotPanel = () => {
     setInput('');
     setPending(true);
     try {
-      const res = await client.post<BotReply>('/bot/query', { text: trimmed });
-      setTurns((t) => [...t, { role: 'bot', reply: res.data }]);
+      const reply = await queryBot(trimmed);
+      setTurns((t) => [...t, { role: 'bot', reply }]);
     } catch (err: any) {
       setTurns((t) => [
         ...t,

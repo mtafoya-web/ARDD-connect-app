@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import client from '../api/client';
 import { User } from '../types';
 import { Avatar } from './Avatar';
 import { UserPlus } from 'lucide-react';
+import { getSuggestions } from '../services/usersService';
 
 export const Suggestions = () => {
   const [suggestions, setSuggestions] = useState<User[]>([]);
@@ -16,8 +16,8 @@ export const Suggestions = () => {
   const fetchSuggestions = async () => {
     try {
       setLoading(true);
-      const response = await client.get<User[]>('/users/suggestions');
-      setSuggestions(response.data);
+      const items = await getSuggestions();
+      setSuggestions(items);
     } catch (err) {
       console.error('Failed to fetch suggestions:', err);
     } finally {
