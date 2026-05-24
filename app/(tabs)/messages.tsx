@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, TextInput, Pressable } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
@@ -11,8 +12,29 @@ import { AuthPrompt } from '@/components/auth-prompt';
 import { LoadingState } from '@/components/loading-state';
 import type { Conversation } from '@/store/types';
 
+function formatTimestamp(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString([], { weekday: 'short' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
 export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { isLoggedIn } = useAuthStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,11 +157,23 @@ export default function MessagesScreen() {
       ) : (
         <View style={{ gap: 2 }}>
           {safeConversations.map((conv, index) => {
-            const displayName = conv.user?.full_name || conv.user?.username || conv.participant?.full_name || 'Unknown';
+            const displayName = conv.user?.full_name ?? conv.user?.username ?? conv.participant?.full_name ?? 'Unknown';
             const uniqueKey = conv.id ?? conv.user?.id ?? index;
+            const userId = conv.user?.id;
+            const isValidUserId = userId != null && Number.isFinite(Number(userId));
+
+            const handlePress = () => {
+              if (!isValidUserId) return;
+              router.push({
+                pathname: '/chat/[otherUserId]',
+                params: { otherUserId: String(userId), name: displayName },
+              });
+            };
+
             return (
               <Pressable
                 key={uniqueKey}
+                onPress={handlePress}
                 style={({ pressed }) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -155,21 +189,21 @@ export default function MessagesScreen() {
                   <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
                     {displayName}
                   </Text>
-                  {conv.last_message && (
+                  {conv.last_message ? (
                     <Text
                       style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}
                       numberOfLines={1}
                     >
                       {conv.last_message}
                     </Text>
-                  )}
-                  {conv.last_message_at && (
+                  ) : null}
+                  {conv.last_message_at ? (
                     <Text style={{ fontFamily: Fonts.regular, fontSize: 11, color: Colors.textTertiary }}>
-                      {new Date(conv.last_message_at).toLocaleDateString()}
+                      {formatTimestamp(conv.last_message_at)}
                     </Text>
-                  )}
+                  ) : null}
                 </View>
-                {conv.unread_count && conv.unread_count > 0 && (
+                {conv.unread_count && conv.unread_count > 0 ? (
                   <View
                     style={{
                       backgroundColor: Colors.primary,
@@ -185,7 +219,8 @@ export default function MessagesScreen() {
                       {conv.unread_count}
                     </Text>
                   </View>
-                )}
+                ) : null}
+                <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
               </Pressable>
             );
           })}

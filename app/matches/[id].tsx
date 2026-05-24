@@ -17,9 +17,11 @@ interface MatchDetail {
   id: number;
   score: number;
   match_type?: string;
+  scenario?: string;
   you: User;
+  me?: User;
   them: User;
-  reasons?: string[];
+  reasons?: string[] | { bullets?: string[]; sharedFocus?: string[]; complementaryGoals?: string[]; conversationStarter?: string };
   conversation_starter?: string;
 }
 
@@ -67,6 +69,22 @@ export default function MatchDetailScreen() {
       </View>
     );
   }
+
+  // Normalize reasons from different API shapes
+  const rawReasons = match.reasons;
+  const normalizedReasons: string[] = Array.isArray(rawReasons)
+    ? rawReasons
+    : Array.isArray((rawReasons as any)?.bullets)
+      ? (rawReasons as any).bullets
+      : [];
+  const conversationStarter = match.conversation_starter
+    ?? (!Array.isArray(rawReasons) ? (rawReasons as any)?.conversationStarter : undefined)
+    ?? '';
+  const matchType = match.match_type ?? match.scenario ?? '';
+
+  // Handle both 'you'/'me' fields from API
+  const meProfile = match.you ?? match.me ?? user!;
+  const themProfile = match.them;
 
   const ProfileCard = ({ label, person }: { label: string; person: User }) => (
     <View
@@ -176,20 +194,20 @@ export default function MatchDetailScreen() {
           <Text style={{ fontFamily: Fonts.bold, fontSize: 28, color: Colors.textPrimary }}>
             Match · {match.score}
           </Text>
-          {match.match_type && (
-            <Badge label={match.match_type} variant="outline" size="md" />
-          )}
+          {matchType ? (
+            <Badge label={matchType} variant="outline" size="md" />
+          ) : null}
         </View>
       </View>
 
       {/* Side-by-side profiles */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        <ProfileCard label="YOU" person={match.you || user!} />
-        <ProfileCard label="THEM" person={match.them} />
+        <ProfileCard label="YOU" person={meProfile} />
+        <ProfileCard label="THEM" person={themProfile} />
       </View>
 
       {/* Why this match */}
-      {match.reasons && (Array.isArray(match.reasons) ? match.reasons : []).length > 0 && (
+      {(normalizedReasons.length > 0 || conversationStarter) && (
         <View
           style={{
             backgroundColor: Colors.card,
@@ -204,7 +222,7 @@ export default function MatchDetailScreen() {
           <Text style={{ fontFamily: Fonts.bold, fontSize: 16, color: Colors.textPrimary }}>
             Why this match
           </Text>
-          {(Array.isArray(match.reasons) ? match.reasons : []).map((reason, i) => (
+          {normalizedReasons.map((reason, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
               <Text style={{ color: Colors.primary, fontSize: 16, lineHeight: 20 }}>{'•'}</Text>
               <Text style={{ fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, flex: 1, lineHeight: 20 }}>
@@ -214,7 +232,7 @@ export default function MatchDetailScreen() {
           ))}
 
           {/* Conversation starter */}
-          {match.conversation_starter && (
+          {conversationStarter ? (
             <View
               style={{
                 backgroundColor: Colors.background,
@@ -232,17 +250,28 @@ export default function MatchDetailScreen() {
                 </Text>
               </View>
               <Text selectable style={{ fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, lineHeight: 20 }}>
-                {match.conversation_starter}
+                {conversationStarter}
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
       )}
 
       {/* Actions */}
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
         <Pressable
-          onPress={() => {}}
+          onPress={() => {
+            const themId = themProfile?.id;
+            if (themId && Number.isFinite(Number(themId))) {
+              router.push({
+                pathname: '/chat/[otherUserId]',
+                params: {
+                  otherUserId: String(themId),
+                  name: themProfile?.full_name ?? themProfile?.username ?? 'Chat',
+                },
+              });
+            }
+          }}
           style={{
             backgroundColor: Colors.primary,
             borderRadius: 10,
@@ -254,13 +283,13 @@ export default function MatchDetailScreen() {
             gap: 8,
           }}
         >
-          <Ionicons name="people" size={16} color={Colors.white} />
+          <Ionicons name="chatbubble" size={16} color={Colors.white} />
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.white }}>
-            Request intro
+            Message
           </Text>
         </Pressable>
         <Pressable
-          onPress={() => match.them && router.push(`/users/${match.them.id}` as never)}
+          onPress={() => themProfile && router.push(`/users/${themProfile.id}` as never)}
           style={{
             borderWidth: 1,
             borderColor: Colors.border,

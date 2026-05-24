@@ -38,6 +38,8 @@ export default function RootLayout() {
           <Stack.Screen name="events/[id]" />
           <Stack.Screen name="users/[id]" />
           <Stack.Screen name="matches/[id]" />
+          <Stack.Screen name="matches/compare/[candidateId]" />
+          <Stack.Screen name="chat/[otherUserId]" />
           <Stack.Screen name="profile/edit" />
         </Stack>
       </SafeAreaProvider>

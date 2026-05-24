@@ -14,6 +14,26 @@ interface MatchCardProps {
 export function MatchCard({ match }: MatchCardProps) {
   const router = useRouter();
 
+  const candidateId = match.candidateId ?? match.candidate?.id ?? match.user?.id;
+  const candidateName = match.candidate?.full_name ?? match.candidate?.username ?? match.user?.full_name ?? 'Chat';
+  const isValidCandidateId = candidateId != null && Number.isFinite(Number(candidateId));
+
+  const handleMessage = () => {
+    if (!isValidCandidateId) return;
+    router.push({
+      pathname: '/chat/[otherUserId]',
+      params: { otherUserId: String(candidateId), name: candidateName },
+    });
+  };
+
+  const handleSideBySide = () => {
+    if (!isValidCandidateId) return;
+    router.push({
+      pathname: '/matches/compare/[candidateId]',
+      params: { candidateId: String(candidateId) },
+    });
+  };
+
   return (
     <View
       style={{
@@ -112,7 +132,7 @@ export function MatchCard({ match }: MatchCardProps) {
       {/* Actions */}
       <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>
         <Pressable
-          onPress={() => router.push(`/matches/${match.id}` as never)}
+          onPress={handleSideBySide}
           style={{
             backgroundColor: Colors.primary,
             borderRadius: 8,
@@ -132,7 +152,7 @@ export function MatchCard({ match }: MatchCardProps) {
           <Ionicons name="open-outline" size={12} color={Colors.white} />
         </Pressable>
         <Pressable
-          onPress={() => {}}
+          onPress={handleMessage}
           style={{
             borderWidth: 1,
             borderColor: Colors.border,
@@ -146,9 +166,9 @@ export function MatchCard({ match }: MatchCardProps) {
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="people-outline" size={12} color={Colors.textPrimary} />
+          <Ionicons name="chatbubble-outline" size={12} color={Colors.textPrimary} />
           <Text style={{ fontFamily: Fonts.medium, fontSize: 12, color: Colors.textPrimary }}>
-            Request intro
+            Message
           </Text>
         </Pressable>
       </View>
