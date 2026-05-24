@@ -17,9 +17,25 @@ import type { Post } from '@/store/types';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isLoggedIn, logout } = useAuthStore();
+  const { user, isLoggedIn, logout, setUser } = useAuthStore();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  const refreshMe = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setProfileLoading(true);
+    try {
+      const me = await apiClient.get<any>('/users/me');
+      if (me && typeof me.id === 'number') {
+        setUser(me);
+      }
+    } catch {
+      // Keep the persisted user if the refresh fails.
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [isLoggedIn, setUser]);
 
   const fetchMyPosts = useCallback(async () => {
     if (!isLoggedIn || !user) return;
@@ -35,6 +51,10 @@ export default function ProfileScreen() {
       setLoading(false);
     }
   }, [isLoggedIn, user]);
+
+  useEffect(() => {
+    refreshMe();
+  }, [refreshMe]);
 
   useEffect(() => {
     fetchMyPosts();
@@ -87,10 +107,10 @@ export default function ProfileScreen() {
             </Text>
             <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
               <Text style={{ fontFamily: Fonts.medium, fontSize: 13, color: Colors.textPrimary }}>
-                <Text style={{ fontFamily: Fonts.bold }}>{user.followers_count ?? 0}</Text> Followers
+                <Text style={{ fontFamily: Fonts.bold }}>{profileLoading ? '...' : user.followers_count ?? 0}</Text> Followers
               </Text>
               <Text style={{ fontFamily: Fonts.medium, fontSize: 13, color: Colors.textPrimary }}>
-                <Text style={{ fontFamily: Fonts.bold }}>{user.following_count ?? 0}</Text> Following
+                <Text style={{ fontFamily: Fonts.bold }}>{profileLoading ? '...' : user.following_count ?? 0}</Text> Following
               </Text>
             </View>
           </View>
