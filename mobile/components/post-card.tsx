@@ -235,7 +235,7 @@ export function PostCard({ post: initialPost, onDelete, onDeleted, showDelete }:
         <View style={{ flexDirection: 'row' }}>
           <Badge label="OFFICIAL" variant="primary" size="sm" />
         </View>
-      ) : post.post_type && post.post_type !== 'original' ? (
+      ) : post.post_type && post.post_type !== 'original' && post.post_type !== 'repost' ? (
         <Badge label={post.post_type} variant="primary" size="sm" />
       ) : null}
 
