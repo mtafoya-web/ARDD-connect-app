@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { buildWebSocketURL } from '../api/ws';
 import { User, Message, Conversation } from '../types';
 import { Avatar } from '../components/Avatar';
-import { Send, MessageSquare, UserPlus, Search } from 'lucide-react';
-import { getConversations, getMessages } from '../services/messagesService';
+import { Send, MessageSquare, UserPlus, Search, Trash2 } from 'lucide-react';
+import { deleteConversation, getConversations, getMessages } from '../services/messagesService';
 import { getUser, listUsers } from '../services/usersService';
 import { toNumericId } from '../lib/ids';
 import { normalizeIncomingMessage } from '../lib/normalize';
+import { playNotificationSound } from '../lib/notificationSound';
 
 const formatTime = (dateStr: string) => {
   if (!dateStr) return '';
@@ -123,6 +124,7 @@ export const MessagesPage = () => {
              incomingMessage.receiver_id === currentConv.user.id)) {
           setMessages((prev) => [...prev, incomingMessage!]);
         }
+        if (incomingMessage.sender_id !== user?.id) playNotificationSound();
 
         // Update conversations list (refresh to show last message)
         fetchConversations();
@@ -173,6 +175,7 @@ export const MessagesPage = () => {
     try {
       const items = await getMessages(otherUserId);
       setMessages(items);
+      fetchConversations();
     } catch (err: any) {
       console.error('Failed to fetch messages:', err);
       setMessagesError(err?.response?.data?.detail || 'Could not load this conversation.');
@@ -192,6 +195,17 @@ export const MessagesPage = () => {
 
     socket.send(JSON.stringify(messageData));
     setNewMessage('');
+  };
+
+  const handleDeleteConversation = async (conv: Conversation) => {
+    if (!conv.user.id) return;
+    const confirmed = window.confirm(`Delete your conversation with ${conv.user.full_name || conv.user.username || 'this person'}?`);
+    if (!confirmed) return;
+    await deleteConversation(conv.user.id);
+    setConversations((prev) => prev.filter((item) => item.user.id !== conv.user.id));
+    if (selectedConversation?.user.id === conv.user.id) {
+      setSelectedConversation(null);
+    }
   };
 
   const scrollToBottom = () => {
@@ -292,24 +306,44 @@ export const MessagesPage = () => {
               </div>
             ) : (
               conversations.map((conv) => (
-                <button
+                <div
                   key={conv.user.id}
-                  onClick={() => setSelectedConversation(conv)}
-                  className={`w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${
+                  className={`group flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${
                     selectedConversation?.user.id === conv.user.id ? 'bg-surface-muted border-r-4 border-accent' : ''
                   }`}
                 >
-                  <Avatar name={conv.user.full_name} username={conv.user.username} url={conv.user.profile_photo_url} />
-                  <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedConversation(conv)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  >
+                    <Avatar name={conv.user.full_name} username={conv.user.username} url={conv.user.profile_photo_url} />
+                    <div className="min-w-0 flex-1">
                     <div className="flex justify-between items-baseline">
                       <h2 className="font-semibold truncate">{conv.user.full_name}</h2>
                       <span className="text-[10px] text-foreground-tertiary whitespace-nowrap">
                         {formatTime(conv.last_message_at)}
                       </span>
                     </div>
-                    <p className="text-sm text-foreground-tertiary truncate">{conv.last_message}</p>
-                  </div>
-                </button>
+                      <div className="flex items-center gap-2">
+                        <p className="min-w-0 flex-1 truncate text-sm text-foreground-tertiary">{conv.last_message}</p>
+                        {(conv.unread_count ?? 0) > 0 && (
+                          <span className="rounded-full bg-status-error px-1.5 text-[10px] font-black leading-5 text-white">
+                            {(conv.unread_count ?? 0) > 9 ? '9+' : conv.unread_count}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteConversation(conv)}
+                    className="rounded-md p-2 text-foreground-tertiary opacity-0 transition hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus:opacity-100"
+                    aria-label="Delete conversation"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               ))
             )
           )}

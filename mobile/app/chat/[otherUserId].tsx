@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { Alert, View, Text, ScrollView, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { API_BASE_URL } from '@/constants/Config';
 import { LoadingState } from '@/components/loading-state';
 import { ErrorState } from '@/components/error-state';
 import type { Message } from '@/store/types';
+import { playNotificationSound } from '@/lib/notification-sound';
 
 function getWebSocketUrl(apiBaseUrl: string, token: string): string {
   const base = apiBaseUrl.replace(/\/$/, '');
@@ -91,6 +92,10 @@ export default function ChatScreen() {
             if (alreadyExists) return safePrev;
             return [...safePrev, incoming];
           });
+          if (incoming.sender_id === numericOtherUserId) {
+            playNotificationSound();
+            fetchMessages();
+          }
         }
       } catch (err) {
         console.error('[Chat] WS parse error:', err);
@@ -109,7 +114,29 @@ export default function ChatScreen() {
       ws.close();
       wsRef.current = null;
     };
-  }, [token, isValidId, numericOtherUserId]);
+  }, [token, isValidId, numericOtherUserId, fetchMessages]);
+
+  const handleDeleteConversation = () => {
+    Alert.alert(
+      'Delete conversation?',
+      `This removes your conversation with ${displayName}.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiClient.delete(`/messages/${numericOtherUserId}`);
+              router.back();
+            } catch (err) {
+              Alert.alert('Delete failed', err instanceof Error ? err.message : 'Could not delete this conversation.');
+            }
+          },
+        },
+      ],
+    );
+  };
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -189,6 +216,9 @@ export default function ChatScreen() {
             {displayName}
           </Text>
         </View>
+        <Pressable onPress={handleDeleteConversation} hitSlop={8}>
+          <Ionicons name="trash-outline" size={22} color={Colors.textTertiary} />
+        </Pressable>
       </View>
 
       {/* Messages */}

@@ -53,10 +53,12 @@ export const API_ROUTES = {
   },
   messages: {
     conversations: '/messages/conversations',
+    unreadCount: '/messages/unread-count',
     // Thread between current user and `otherUserId`. The backend route is
     // /messages/{other_user_id}, derived in Python from the DB rows that
     // join both directions — no conversation table exists.
     thread: (otherUserId: number) => `/messages/${otherUserId}`,
+    deleteConversation: (otherUserId: number) => `/messages/${otherUserId}`,
     websocket: (token: string) => `/messages/ws/${token}`,
   },
   matches: {

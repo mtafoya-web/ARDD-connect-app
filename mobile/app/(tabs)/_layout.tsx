@@ -3,25 +3,45 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
+import { playNotificationSound } from '@/lib/notification-sound';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { isLoggedIn } = useAuthStore();
   const [unread, setUnread] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const hasLoadedUnread = useRef(false);
+  const unreadRef = useRef({ notifications: 0, messages: 0 });
 
   const loadUnread = useCallback(async () => {
     if (!isLoggedIn) {
       setUnread(0);
+      setUnreadMessages(0);
       return;
     }
     try {
-      const data = await apiClient.get<{ unread_count: number }>('/notifications/unread-count');
-      setUnread(Number(data.unread_count) || 0);
+      const [notificationData, messageData] = await Promise.all([
+        apiClient.get<{ unread_count: number }>('/notifications/unread-count'),
+        apiClient.get<{ unread_count: number }>('/messages/unread-count'),
+      ]);
+      const notificationCount = Number(notificationData.unread_count) || 0;
+      const messageCount = Number(messageData.unread_count) || 0;
+      if (
+        hasLoadedUnread.current &&
+        (notificationCount > unreadRef.current.notifications || messageCount > unreadRef.current.messages)
+      ) {
+        playNotificationSound();
+      }
+      hasLoadedUnread.current = true;
+      unreadRef.current = { notifications: notificationCount, messages: messageCount };
+      setUnread(notificationCount);
+      setUnreadMessages(messageCount);
     } catch {
       setUnread(0);
+      setUnreadMessages(0);
     }
   }, [isLoggedIn]);
 
@@ -81,6 +101,7 @@ export default function TabsLayout() {
         name="messages"
         options={{
           title: 'Messages',
+          tabBarBadge: unreadMessages > 0 ? (unreadMessages > 9 ? '9+' : unreadMessages) : undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),

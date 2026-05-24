@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { buildWebSocketURL } from '../api/ws';
 import { User, Message, Conversation } from '../types';
 import { Avatar } from './Avatar';
-import { Send, MessageSquare, X, Minimize2, Maximize2, ChevronDown, Search } from 'lucide-react';
-import { getConversations, getMessages } from '../services/messagesService';
+import { Send, MessageSquare, X, Minimize2, Maximize2, ChevronDown, Search, Trash2 } from 'lucide-react';
+import { deleteConversation, getConversations, getMessages, getUnreadMessageCount } from '../services/messagesService';
 import { listUsers } from '../services/usersService';
 import { normalizeIncomingMessage } from '../lib/normalize';
+import { playNotificationSound } from '../lib/notificationSound';
 
 const formatTime = (dateStr: string) => {
   if (!dateStr) return '';
@@ -33,6 +34,7 @@ export const ChatWidget = () => {
   const [messagesError, setMessagesError] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const selectedConversationRef = useRef<Conversation | null>(null);
 
@@ -84,6 +86,28 @@ export const ChatWidget = () => {
   }, [token, isOpen]);
 
   useEffect(() => {
+    if (!token || !user) {
+      setUnreadMessages(0);
+      return;
+    }
+    let active = true;
+    const load = async () => {
+      try {
+        const count = await getUnreadMessageCount();
+        if (active) setUnreadMessages(count);
+      } catch {
+        if (active) setUnreadMessages(0);
+      }
+    };
+    load();
+    const id = window.setInterval(load, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+    };
+  }, [token, user]);
+
+  useEffect(() => {
     if (token && isOpen) {
       const wsUrl = buildWebSocketURL(`/messages/ws/${encodeURIComponent(token)}`);
       const newSocket = new WebSocket(wsUrl);
@@ -101,10 +125,19 @@ export const ChatWidget = () => {
         if (!incomingMessage) return;
 
         const currentConv = selectedConversationRef.current;
-        if (currentConv &&
+        const isCurrentThread = Boolean(currentConv &&
             (incomingMessage.sender_id === currentConv.user.id ||
-             incomingMessage.receiver_id === currentConv.user.id)) {
+             incomingMessage.receiver_id === currentConv.user.id));
+        if (isCurrentThread) {
           setMessages((prev) => [...prev, incomingMessage!]);
+        }
+        if (incomingMessage.sender_id !== user?.id) {
+          playNotificationSound();
+          if (isCurrentThread && currentConv?.user.id) {
+            fetchMessages(currentConv.user.id);
+          } else {
+            setUnreadMessages((prev) => prev + 1);
+          }
         }
         fetchConversations();
       };
@@ -144,6 +177,8 @@ export const ChatWidget = () => {
     try {
       const items = await getMessages(otherUserId);
       setMessages(items);
+      fetchConversations();
+      getUnreadMessageCount().then(setUnreadMessages).catch(() => undefined);
     } catch (err: any) {
       console.error('Failed to fetch messages:', err);
       setMessagesError(err?.response?.data?.detail || 'Could not load this conversation.');
@@ -163,6 +198,18 @@ export const ChatWidget = () => {
 
     socket.send(JSON.stringify(messageData));
     setNewMessage('');
+  };
+
+  const handleDeleteConversation = async (conv: Conversation) => {
+    if (!conv.user.id) return;
+    const confirmed = window.confirm(`Delete your conversation with ${conv.user.full_name || conv.user.username || 'this person'}?`);
+    if (!confirmed) return;
+    await deleteConversation(conv.user.id);
+    setConversations((prev) => prev.filter((item) => item.user.id !== conv.user.id));
+    if (selectedConversation?.user.id === conv.user.id) {
+      setSelectedConversation(null);
+    }
+    getUnreadMessageCount().then(setUnreadMessages).catch(() => undefined);
   };
 
   const scrollToBottom = () => {
@@ -302,22 +349,42 @@ export const ChatWidget = () => {
                         </div>
                       ) : (
                         conversations.map((conv) => (
-                          <button
+                          <div
                             key={conv.user.id}
-                            onClick={() => setSelectedConversation(conv)}
-                            className="w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-surface-muted border-b border-border-secondary/50"
+                            className="group flex w-full items-center gap-2 border-b border-border-secondary/50 p-3 text-left transition-colors hover:bg-surface-muted"
                           >
-                            <Avatar name={conv.user.full_name} username={conv.user.username} url={conv.user.profile_photo_url} size="sm" />
-                            <div className="min-w-0 flex-1">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedConversation(conv)}
+                              className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                            >
+                              <Avatar name={conv.user.full_name} username={conv.user.username} url={conv.user.profile_photo_url} size="sm" />
+                              <div className="min-w-0 flex-1">
                               <div className="flex justify-between items-baseline">
                                 <h2 className="text-sm font-semibold truncate">{conv.user.full_name}</h2>
                                 <span className="text-[9px] text-foreground-tertiary whitespace-nowrap">
                                   {formatTime(conv.last_message_at)}
                                 </span>
                               </div>
-                              <p className="text-xs text-foreground-tertiary truncate">{conv.last_message}</p>
-                            </div>
-                          </button>
+                                <div className="flex items-center gap-2">
+                                  <p className="min-w-0 flex-1 truncate text-xs text-foreground-tertiary">{conv.last_message}</p>
+                                  {(conv.unread_count ?? 0) > 0 && (
+                                    <span className="rounded-full bg-status-error px-1.5 text-[9px] font-black leading-4 text-white">
+                                      {(conv.unread_count ?? 0) > 9 ? '9+' : conv.unread_count}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteConversation(conv)}
+                              className="rounded-md p-1.5 text-foreground-tertiary opacity-0 transition hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus:opacity-100"
+                              aria-label="Delete conversation"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         ))
                       )
                     )}
@@ -333,9 +400,14 @@ export const ChatWidget = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-foreground-inverse shadow-xl hover:bg-accent-hover hover:scale-105 transition-all"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent text-foreground-inverse shadow-xl hover:bg-accent-hover hover:scale-105 transition-all"
         >
           <MessageSquare size={24} />
+          {unreadMessages > 0 && (
+            <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-status-error px-1.5 text-[11px] font-black leading-5 text-white ring-2 ring-surface">
+              {unreadMessages > 9 ? '9+' : unreadMessages}
+            </span>
+          )}
         </button>
       )}
     </div>

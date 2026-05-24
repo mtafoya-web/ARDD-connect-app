@@ -251,6 +251,7 @@ export interface Message {
   sender_id: number;
   receiver_id: number;
   content: string;
+  read_at?: string | null;
   created_at: string;
 }
 
@@ -258,6 +259,7 @@ export interface Conversation {
   user: Partial<User>;
   last_message: string;
   last_message_at: string;
+  unread_count?: number;
 }
 
 export interface NotificationItem {

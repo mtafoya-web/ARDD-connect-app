@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TextInput, Pressable } from 'react-native';
+import { Alert, View, Text, ScrollView, TextInput, Pressable } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -89,6 +89,31 @@ export default function MessagesScreen() {
       pathname: '/chat/[otherUserId]',
       params: { otherUserId: String(target.id), name: displayName },
     });
+  };
+
+  const deleteConversation = (conv: Conversation) => {
+    const userId = conv.user?.id;
+    if (!userId || !Number.isFinite(Number(userId))) return;
+    const displayName = conv.user?.full_name || conv.user?.username || 'this person';
+    Alert.alert(
+      'Delete conversation?',
+      `This removes your conversation with ${displayName}.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiClient.delete(`/messages/${userId}`);
+              setConversations((prev) => prev.filter((item) => item.user?.id !== userId));
+            } catch (err) {
+              Alert.alert('Delete failed', err instanceof Error ? err.message : 'Could not delete this conversation.');
+            }
+          },
+        },
+      ],
+    );
   };
 
   if (!isLoggedIn) {
@@ -258,9 +283,28 @@ export default function MessagesScreen() {
               >
                 <Avatar name={displayName} size={44} />
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
-                    {displayName}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ flex: 1, fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
+                      {displayName}
+                    </Text>
+                    {(conv.unread_count ?? 0) > 0 ? (
+                      <View
+                        style={{
+                          minWidth: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: Colors.error,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          paddingHorizontal: 6,
+                        }}
+                      >
+                        <Text style={{ fontFamily: Fonts.bold, fontSize: 10, color: Colors.white }}>
+                          {(conv.unread_count ?? 0) > 9 ? '9+' : conv.unread_count}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
                   {conv.last_message ? (
                     <Text
                       style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}
@@ -275,7 +319,15 @@ export default function MessagesScreen() {
                     </Text>
                   ) : null}
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
+                <Pressable
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    deleteConversation(conv);
+                  }}
+                  hitSlop={8}
+                >
+                  <Ionicons name="trash-outline" size={18} color={Colors.textTertiary} />
+                </Pressable>
               </Pressable>
             );
           })}

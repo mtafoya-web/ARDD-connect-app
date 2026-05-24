@@ -239,10 +239,29 @@ class MessageOut(BaseModel):
     sender_id: int
     receiver_id: int
     content: str
+    read_at: datetime | None = None
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class ConversationUserOut(BaseModel):
+    id: int
+    username: str
+    full_name: str | None = ""
+    profile_photo_url: str | None = ""
+
+
+class ConversationOut(BaseModel):
+    user: ConversationUserOut
+    last_message: str
+    last_message_at: datetime | None = None
+    unread_count: int = 0
+
+
+class MessageUnreadCount(BaseModel):
+    unread_count: int
 
 
 # -------------------------

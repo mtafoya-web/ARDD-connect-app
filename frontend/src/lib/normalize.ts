@@ -141,6 +141,7 @@ export const normalizeConversations = (data: unknown): Conversation[] =>
       user: c.user,
       last_message: c.last_message ?? '',
       last_message_at: c.last_message_at ?? '',
+      unread_count: Number(c.unread_count) || 0,
     }));
 
 /**
@@ -162,6 +163,7 @@ export const normalizeIncomingMessage = (value: unknown): Message | null => {
     sender_id: m.sender_id,
     receiver_id: m.receiver_id,
     content: String(m.content ?? ''),
+    read_at: m.read_at ?? null,
     created_at: m.created_at ?? '',
   };
 };

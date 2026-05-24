@@ -4,13 +4,14 @@ from sqlalchemy import or_, and_
 from typing import List, Dict
 import json
 import logging
+from datetime import datetime, timezone
 
 from ..database import get_db
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 from ..models import Message, User
-from ..schemas import MessageOut, MessageCreate
+from ..schemas import MessageOut, MessageCreate, ConversationOut, MessageUnreadCount
 from ..auth import SECRET_KEY, ALGORITHM, get_current_user
 from ..utils.notifications import create_notification, display_name
 from jose import jwt, JWTError
@@ -45,6 +46,20 @@ class ConnectionManager:
             logger.info(f"User {user_id} is not connected, skipping delivery")
 
 manager = ConnectionManager()
+
+
+def _visible_message_filter(current_user_id: int):
+    return or_(
+        and_(Message.sender_id == current_user_id, Message.sender_deleted_at.is_(None)),
+        and_(Message.receiver_id == current_user_id, Message.receiver_deleted_at.is_(None)),
+    )
+
+
+def _thread_filter(current_user_id: int, other_user_id: int):
+    return or_(
+        and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
+        and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id),
+    )
 
 async def get_user_from_token(token: str, db: Session):
     try:
@@ -121,15 +136,34 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     finally:
         db.close()
 
-@router.get("/conversations", response_model=List[dict])
+@router.get("/unread-count", response_model=MessageUnreadCount)
+def get_unread_message_count(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    count = db.query(Message).filter(
+        Message.receiver_id == current_user.id,
+        Message.read_at.is_(None),
+        Message.receiver_deleted_at.is_(None),
+    ).count()
+    return {"unread_count": count}
+
+
+@router.get("/conversations", response_model=List[ConversationOut])
 def get_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     # This is a bit complex in SQL: get unique users we've chatted with
     # For simplicity, we'll do it in Python for now
-    sent = db.query(Message.receiver_id).filter(Message.sender_id == current_user.id).distinct().all()
-    received = db.query(Message.sender_id).filter(Message.receiver_id == current_user.id).distinct().all()
+    sent = db.query(Message.receiver_id).filter(
+        Message.sender_id == current_user.id,
+        Message.sender_deleted_at.is_(None),
+    ).distinct().all()
+    received = db.query(Message.sender_id).filter(
+        Message.receiver_id == current_user.id,
+        Message.receiver_deleted_at.is_(None),
+    ).distinct().all()
     
     user_ids = set([r[0] for r in sent] + [r[0] for r in received])
     
@@ -139,11 +173,18 @@ def get_conversations(
         if other_user:
             # Get last message
             last_msg = db.query(Message).filter(
-                or_(
-                    and_(Message.sender_id == current_user.id, Message.receiver_id == uid),
-                    and_(Message.sender_id == uid, Message.receiver_id == current_user.id)
-                )
+                _thread_filter(current_user.id, uid),
+                _visible_message_filter(current_user.id),
             ).order_by(Message.created_at.desc()).first()
+            if not last_msg:
+                continue
+
+            unread_count = db.query(Message).filter(
+                Message.sender_id == uid,
+                Message.receiver_id == current_user.id,
+                Message.read_at.is_(None),
+                Message.receiver_deleted_at.is_(None),
+            ).count()
             
             conversations.append({
                 "user": {
@@ -153,12 +194,35 @@ def get_conversations(
                     "profile_photo_url": other_user.profile_photo_url
                 },
                 "last_message": last_msg.content if last_msg else "",
-                "last_message_at": last_msg.created_at if last_msg else None
+                "last_message_at": last_msg.created_at if last_msg else None,
+                "unread_count": unread_count,
             })
             
     # Sort by last message time
     conversations.sort(key=lambda x: x["last_message_at"] or "", reverse=True)
     return conversations
+
+
+@router.delete("/{other_user_id}")
+def delete_conversation(
+    other_user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    now = datetime.now(timezone.utc)
+    messages = db.query(Message).filter(
+        _thread_filter(current_user.id, other_user_id),
+        _visible_message_filter(current_user.id),
+    ).all()
+    for message in messages:
+        if message.sender_id == current_user.id:
+            message.sender_deleted_at = now
+        if message.receiver_id == current_user.id:
+            message.receiver_deleted_at = now
+            if message.read_at is None:
+                message.read_at = now
+    db.commit()
+    return {"deleted": len(messages)}
 
 @router.get("/{other_user_id}", response_model=List[MessageOut])
 def get_messages(
@@ -167,9 +231,16 @@ def get_messages(
     current_user: User = Depends(get_current_user)
 ):
     messages = db.query(Message).filter(
-        or_(
-            and_(Message.sender_id == current_user.id, Message.receiver_id == other_user_id),
-            and_(Message.sender_id == other_user_id, Message.receiver_id == current_user.id)
-        )
+        _thread_filter(current_user.id, other_user_id),
+        _visible_message_filter(current_user.id),
     ).order_by(Message.created_at.asc()).all()
+    unread = [
+        message for message in messages
+        if message.receiver_id == current_user.id and message.read_at is None
+    ]
+    if unread:
+        now = datetime.now(timezone.utc)
+        for message in unread:
+            message.read_at = now
+        db.commit()
     return messages

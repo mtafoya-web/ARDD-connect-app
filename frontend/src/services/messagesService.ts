@@ -20,6 +20,16 @@ export async function getConversations(): Promise<Conversation[]> {
   return normalizeConversations(res.data);
 }
 
+export async function getUnreadMessageCount(): Promise<number> {
+  const res = await client.get(API_ROUTES.messages.unreadCount);
+  return Number(res.data?.unread_count) || 0;
+}
+
+export async function deleteConversation(otherUserId: unknown): Promise<void> {
+  const id = requireNumericId(otherUserId);
+  await client.delete(API_ROUTES.messages.deleteConversation(id));
+}
+
 /**
  * Full message history with `otherUserId`. The id must be a positive
  * integer — sending /messages/NaN would 422 and the chat panel would

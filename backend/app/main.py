@@ -3,11 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import get_settings
-from .database import Base, engine
+from .database import Base, engine, ensure_runtime_schema
 from .models import * 
 from .routes import auth, users, posts, follows, events, media, messages, matches, sessions, bot, notifications
 
 Base.metadata.create_all(bind=engine)
+ensure_runtime_schema()
 settings = get_settings()
 
 app = FastAPI(

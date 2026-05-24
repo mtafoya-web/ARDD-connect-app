@@ -14,13 +14,15 @@ import {
 import { Avatar } from './Avatar';
 import { ArddLogo } from './ArddLogo';
 import { ThemeToggle } from './ui/ThemeToggle';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getUnreadNotificationCount } from '../services/notificationsService';
+import { playNotificationSound } from '../lib/notificationSound';
 
 export const Navbar = () => {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const hasLoadedNotifications = useRef(false);
 
   useEffect(() => {
     if (!token || !user) {
@@ -31,7 +33,13 @@ export const Navbar = () => {
     const load = async () => {
       try {
         const count = await getUnreadNotificationCount();
-        if (active) setUnreadNotifications(count);
+        if (active) {
+          setUnreadNotifications((previous) => {
+            if (hasLoadedNotifications.current && count > previous) playNotificationSound();
+            hasLoadedNotifications.current = true;
+            return count;
+          });
+        }
       } catch {
         if (active) setUnreadNotifications(0);
       }

@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 ### Load Enviorment Files ###
@@ -33,6 +34,27 @@ SessionLocal = sessionmaker(
 ### The parent class that the database models will inherit from ###
 ## class User(Base):
 Base = declarative_base()
+
+
+def ensure_runtime_schema():
+    """Apply tiny additive schema fixes for deployments without migrations."""
+    inspector = inspect(engine)
+    if "messages" not in inspector.get_table_names():
+        return
+
+    existing = {column["name"] for column in inspector.get_columns("messages")}
+    additions = {
+        "read_at": "TIMESTAMP",
+        "sender_deleted_at": "TIMESTAMP",
+        "receiver_deleted_at": "TIMESTAMP",
+    }
+
+    with engine.begin() as connection:
+        for name, sql_type in additions.items():
+            if name not in existing:
+                connection.execute(text(f"ALTER TABLE messages ADD COLUMN {name} {sql_type}"))
+        if "read_at" not in existing:
+            connection.execute(text("UPDATE messages SET read_at = created_at WHERE read_at IS NULL"))
 
 ### Dependancy function that creates and provides a database session ###
 def get_db():
