@@ -82,12 +82,10 @@ export const Navbar = () => {
             <Calendar size={18} />
             <span className="hidden lg:inline">Schedule</span>
           </NavLink>
-          {token && user && (
-            <NavLink to="/people" className={navClass}>
-              <Sparkles size={18} />
-              <span className="hidden lg:inline">Matches</span>
-            </NavLink>
-          )}
+          <NavLink to="/people" className={navClass}>
+            <Users size={18} />
+            <span className="hidden lg:inline">People</span>
+          </NavLink>
           <NavLink to="/announcements" className={navClass}>
             <Megaphone size={18} />
             <span className="hidden lg:inline">Updates</span>

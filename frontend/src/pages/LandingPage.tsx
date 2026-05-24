@@ -259,6 +259,10 @@ export const LandingPage = () => {
           <p className="mt-4 leading-relaxed text-foreground-secondary">
             Every profile is designed to answer what someone studies, where they work, and why they may be relevant to aging research or drug discovery.
           </p>
+          <Link to="/people" className="mt-6 inline-flex items-center gap-2 font-bold text-accent hover:underline">
+            Browse the directory
+            <ArrowRight size={16} />
+          </Link>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">

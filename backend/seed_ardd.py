@@ -35,6 +35,11 @@ def at(day: datetime, hour: int, minute: int = 0) -> datetime:
 # ---------------------------------------------------------------------------
 # Attendees (10 demo profiles — Maya is the hero user)
 # ---------------------------------------------------------------------------
+BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
+
+def profile_url(filename: str) -> str:
+    return f"{BASE_URL}/uploads/profile_photos/{filename}"
+
 ATTENDEES = [
     {
         "username": "maya_chen",
@@ -46,7 +51,7 @@ ATTENDEES = [
         "research_interests": "Aging clocks, partial reprogramming, multi-omics integration, in-vivo validation of rejuvenation.",
         "looking_for": "Biotech collaborators to validate aging clocks on their in-vivo reprogramming data; translational partners.",
         "location": "Stanford, CA",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180223_1779579164691_image_1.jpeg",
+        "profile_photo_url": profile_url("1779579180223_1779579164691_image_1.jpeg"),
         "ardd_meta": {
             "role": "academic_pi",
             "orgType": "academia",
@@ -70,7 +75,7 @@ ATTENDEES = [
         "research_interests": "In-vivo OSK delivery, epigenetic age reversal, safety profiling.",
         "looking_for": "Series A leads, computational aging collaborators to validate in-vivo readouts, translational hires.",
         "location": "Boston, MA",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180236_1779579164867_image_2.jpeg",
+        "profile_photo_url": profile_url("1779579180236_1779579164867_image_2.jpeg"),
         "ardd_meta": {
             "role": "biotech_founder",
             "orgType": "biotech",
@@ -94,7 +99,7 @@ ATTENDEES = [
         "research_interests": "Senolytics, proteostasis collapse with age, mitochondrial dysfunction crosstalk.",
         "looking_for": "Academic collaborators with novel senescence models; KOL conversations on translational endpoints.",
         "location": "South San Francisco, CA",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180245_1779579165243_image_3.jpeg",
+        "profile_photo_url": profile_url("1779579180245_1779579165243_image_3.jpeg"),
         "ardd_meta": {
             "role": "biotech_scientist",
             "orgType": "biotech",
@@ -118,7 +123,7 @@ ATTENDEES = [
         "research_interests": "Therapeutic modalities, clinical-stage geroscience, biomarker-driven trials.",
         "looking_for": "License-in candidates in senolytics and metabolic geroscience; clinical-stage partners.",
         "location": "New York, NY",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180257_1779579165402_image_4.jpeg",
+        "profile_photo_url": profile_url("1779579180257_1779579165402_image_4.jpeg"),
         "ardd_meta": {
             "role": "pharma_bd",
             "orgType": "pharma",
@@ -141,7 +146,7 @@ ATTENDEES = [
         "research_interests": "Aging clocks, longevity biomarkers, AI-for-discovery platforms.",
         "looking_for": "Pre-seed and seed founders building biomarker or AI discovery platforms; KOL intros.",
         "location": "Zurich, CH",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180268_1779579165524_image_5.jpeg",
+        "profile_photo_url": profile_url("1779579180268_1779579165524_image_5.jpeg"),
         "ardd_meta": {
             "role": "investor_family_office",
             "orgType": "family_office",
@@ -164,7 +169,7 @@ ATTENDEES = [
         "research_interests": "Senescence-immune crosstalk, immune aging clocks, cancer-aging interface.",
         "looking_for": "Biotech partners for senolytic-immune combinations; KOL conversations.",
         "location": "Rehovot, IL",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180283_1779579165695_image_6.jpeg",
+        "profile_photo_url": profile_url("1779579180283_1779579165695_image_6.jpeg"),
         "ardd_meta": {
             "role": "academic_pi",
             "orgType": "academia",
@@ -187,7 +192,7 @@ ATTENDEES = [
         "research_interests": "ML for aging clocks, generative models for senolytics, multi-omics.",
         "looking_for": "Postdoc candidates; biotech collaborators with proprietary aging-clock datasets.",
         "location": "San Francisco, CA",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180297_1779579165795_image_7.jpeg",
+        "profile_photo_url": profile_url("1779579180297_1779579165795_image_7.jpeg"),
         "ardd_meta": {
             "role": "academic_pi",
             "orgType": "academia",
@@ -210,7 +215,7 @@ ATTENDEES = [
         "research_interests": "Partial reprogramming, senolytics, cell and gene therapy for aging.",
         "looking_for": "Seed and Series A founders in therapeutic modalities; clinical-stage geroscience.",
         "location": "London, UK",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180313_1779579165938_image_8.jpeg",
+        "profile_photo_url": profile_url("1779579180313_1779579165938_image_8.jpeg"),
         "ardd_meta": {
             "role": "investor_vc",
             "orgType": "vc",
@@ -233,7 +238,7 @@ ATTENDEES = [
         "research_interests": "Methylation clocks, proteomic clocks, CLIA validation.",
         "looking_for": "Pharma partners for trial endpoints; KOL clinicians; Series A co-leads.",
         "location": "Boston, MA",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180327_1779579166075_image_9.jpeg",
+        "profile_photo_url": profile_url("1779579180327_1779579166075_image_9.jpeg"),
         "ardd_meta": {
             "role": "biotech_founder",
             "orgType": "biotech",
@@ -257,7 +262,7 @@ ATTENDEES = [
         "research_interests": "Senolytics, fibrosis-aging axis, target ID.",
         "looking_for": "Academic targets and tool-compound collaborations; KOL conversations.",
         "location": "Cambridge, MA",
-        "profile_photo_url": "http://localhost:8000/uploads/profile_photos/1779579180339_1779579166271_image_10.jpeg",
+        "profile_photo_url": profile_url("1779579180339_1779579166271_image_10.jpeg"),
         "ardd_meta": {
             "role": "pharma_scientist",
             "orgType": "pharma",

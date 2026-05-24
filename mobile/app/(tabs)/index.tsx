@@ -242,9 +242,16 @@ export default function FeedScreen() {
           borderColor: Colors.border,
         }}
       >
-        <Text style={{ fontFamily: Fonts.semiBold, fontSize: 13, color: Colors.textPrimary }}>
-          Focus areas
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={{ fontFamily: Fonts.semiBold, fontSize: 13, color: Colors.textPrimary }}>
+            Focus areas
+          </Text>
+          <Pressable onPress={() => router.push('/people')}>
+            <Text style={{ fontFamily: Fonts.bold, fontSize: 12, color: Colors.primary }}>
+              View all
+            </Text>
+          </Pressable>
+        </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {['Longevity therapeutics', 'Biomarkers', 'Senescence', 'AI discovery'].map((tag) => (
             <View
