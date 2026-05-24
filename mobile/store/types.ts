@@ -245,3 +245,38 @@ export interface NotificationItem {
 export interface NotificationUnreadCount {
   unread_count: number;
 }
+
+// ---------------------------------------------------------------------------
+// Experts
+// ---------------------------------------------------------------------------
+
+export interface Expert {
+  id: number;
+  csv_name: string;
+  csv_email: string;
+  csv_affiliation: string;
+  csv_bio: string;
+  csv_field: string;
+  csv_keywords: string;
+  csv_confidence_score: number;
+  source_url: string;
+  event_year: number;
+  is_claimed: boolean;
+  claimed_at: string | null;
+  verified_by_admin: boolean;
+  user_id: number | null;
+  created_at: string;
+}
+
+export interface ExpertCheckResponse {
+  has_expert_profile: boolean;
+  expert: Expert | null;
+  message: string;
+}
+
+export interface ExpertClaimResponse {
+  success: boolean;
+  message: string;
+  expert: Expert | null;
+  requires_admin_verification: boolean;
+}

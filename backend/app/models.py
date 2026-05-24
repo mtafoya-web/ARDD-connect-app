@@ -172,3 +172,37 @@ class Notification(Base):
 
     user = relationship("User", foreign_keys=[user_id])
     actor = relationship("User", foreign_keys=[actor_id])
+
+
+class Expert(Base):
+    __tablename__ = "experts"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # CSV data
+    csv_name = Column(String(255), nullable=False, index=True)
+    csv_email = Column(String(255), unique=True, nullable=False, index=True)
+    csv_affiliation = Column(String(255), default="")
+    csv_bio = Column(Text, default="")
+    csv_field = Column(String(100), default="")  # Field of study
+    csv_keywords = Column(Text, default="")  # Comma-separated keywords
+    csv_confidence_score = Column(Integer, default=0)  # 0-4
+    source_url = Column(String(512), default="")
+    event_year = Column(Integer, default=2025)
+
+    # Claim tracking
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, unique=True)
+    is_claimed = Column(Boolean, default=False, index=True)
+    claimed_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Admin verification for manual claims
+    verified_by_admin = Column(Boolean, default=False)
+    admin_verified_at = Column(DateTime(timezone=True), nullable=True)
+    verified_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], backref="expert_profile")
+    verified_by = relationship("User", foreign_keys=[verified_by_user_id])

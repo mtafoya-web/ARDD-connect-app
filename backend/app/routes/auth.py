@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_db
-from ..models import User, Follow
+from ..models import User, Follow, Expert
 from ..schemas import (
     GoogleLoginRequest,
     LoginResponse,
@@ -18,6 +18,7 @@ from ..schemas import (
     PasswordResetResponse,
     UserCreate,
     UserOut,
+    ExpertOut,
 )
 from ..auth import hash_password, verify_password, create_access_token
 
@@ -271,3 +272,41 @@ def confirm_password_reset(
         user.auth_provider = "password"
     db.commit()
     return {"message": "Password has been reset"}
+
+
+@router.get("/check-expert-profile")
+def check_expert_profile(
+    email: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Check if an email has a matching expert profile in the CSV.
+    Called after user registration to offer expert profile claiming.
+    """
+    normalized_email = normalize_email(email)
+
+    # Try exact match first
+    expert = db.query(Expert).filter(
+        Expert.csv_email == normalized_email,
+        Expert.is_claimed == False,
+    ).first()
+
+    # Try case-insensitive match
+    if not expert:
+        expert = db.query(Expert).filter(
+            Expert.csv_email.ilike(normalized_email),
+            Expert.is_claimed == False,
+        ).first()
+
+    if expert:
+        return {
+            "has_expert_profile": True,
+            "expert": ExpertOut.model_validate(expert),
+            "message": f"Found expert profile for {expert.csv_name}! Would you like to claim it?",
+        }
+    else:
+        return {
+            "has_expert_profile": False,
+            "expert": None,
+            "message": "No expert profile found for this email.",
+        }

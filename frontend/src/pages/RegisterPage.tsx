@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, UserPlus } from 'lucide-react';
+import { ArrowRight, UserPlus, Award, X } from 'lucide-react';
 import { ArddLogo } from '../components/ArddLogo';
 import { updateMe } from '../services/usersService';
+import { checkExpertProfile, claimExpertByEmail, Expert } from '../services/expertsService';
 
 const fieldClass =
   'w-full rounded-lg border border-border-secondary bg-surface-muted px-4 py-3 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15';
@@ -18,6 +19,9 @@ export const RegisterPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [expertProfile, setExpertProfile] = useState<Expert | null>(null);
+  const [showExpertModal, setShowExpertModal] = useState(false);
+  const [claimingExpert, setClaimingExpert] = useState(false);
   const navigate = useNavigate();
   const { register, login, refreshUser } = useAuth();
 
@@ -26,6 +30,31 @@ export const RegisterPage = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleClaimExpert = async () => {
+    if (!expertProfile) return;
+    
+    setClaimingExpert(true);
+    try {
+      const result = await claimExpertByEmail(formData.email.trim().toLowerCase());
+      if (result.success) {
+        setExpertProfile(result.expert);
+        setShowExpertModal(false);
+        navigate('/feed');
+      } else {
+        setError(result.message);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to claim expert profile');
+    } finally {
+      setClaimingExpert(false);
+    }
+  };
+
+  const handleSkipExpert = () => {
+    setShowExpertModal(false);
+    navigate('/feed');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +87,20 @@ export const RegisterPage = () => {
       });
       await updateMe({ full_name: fullName });
       await refreshUser();
-      navigate('/feed');
+
+      // Check for expert profile
+      try {
+        const expertCheck = await checkExpertProfile(email);
+        if (expertCheck.has_expert_profile && expertCheck.expert) {
+          setExpertProfile(expertCheck.expert);
+          setShowExpertModal(true);
+        } else {
+          navigate('/feed');
+        }
+      } catch (err) {
+        // If expert check fails, just proceed to feed
+        navigate('/feed');
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Registration failed');
     } finally {
@@ -190,6 +232,81 @@ export const RegisterPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Expert Profile Modal */}
+      {showExpertModal && expertProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-lg border border-border-secondary bg-surface p-6 shadow-lg sm:p-8">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-accent/10 p-3">
+                  <Award className="text-accent" size={24} />
+                </div>
+                <h2 className="text-xl font-bold text-foreground-primary">Expert Profile Found!</h2>
+              </div>
+              <button
+                onClick={handleSkipExpert}
+                className="text-foreground-tertiary hover:text-foreground-primary"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="mt-4 text-sm text-foreground-secondary">
+              We found your profile from the ARDD speakers directory. Would you like to claim it?
+            </p>
+
+            <div className="mt-6 space-y-3 rounded-lg bg-surface-muted p-4">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-xs font-bold text-accent">
+                  ✓
+                </span>
+                <div>
+                  <p className="font-medium text-foreground-primary">{expertProfile.csv_name}</p>
+                  <p className="text-sm text-foreground-tertiary">{expertProfile.csv_affiliation}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-border-secondary pt-3">
+                <p className="text-xs uppercase tracking-wide text-accent font-bold">Expertise</p>
+                <p className="mt-1 text-sm text-foreground-secondary">{expertProfile.csv_field}</p>
+              </div>
+
+              {expertProfile.csv_keywords && (
+                <div className="border-t border-border-secondary pt-3">
+                  <p className="text-xs uppercase tracking-wide text-accent font-bold">Keywords</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {expertProfile.csv_keywords.split(',').map((keyword, i) => (
+                      <span
+                        key={i}
+                        className="rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent"
+                      >
+                        {keyword.trim()}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={handleSkipExpert}
+                className="flex-1 rounded-lg border border-border-secondary px-4 py-2.5 text-sm font-bold text-foreground-primary hover:bg-surface-muted focus:outline-none focus:ring-4 focus:ring-accent/20"
+              >
+                Skip for now
+              </button>
+              <button
+                onClick={handleClaimExpert}
+                disabled={claimingExpert}
+                className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-foreground-inverse hover:bg-accent-hover focus:outline-none focus:ring-4 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {claimingExpert ? 'Claiming...' : 'Claim profile'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

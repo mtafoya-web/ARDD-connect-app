@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import get_settings
 from .database import Base, engine, ensure_runtime_schema
 from .models import * 
-from .routes import auth, users, posts, follows, events, media, messages, matches, sessions, bot, notifications
+from .routes import auth, users, posts, follows, events, media, messages, matches, sessions, bot, notifications, experts
 
 Base.metadata.create_all(bind=engine)
 ensure_runtime_schema()
@@ -44,6 +44,7 @@ app.include_router(matches.router)
 app.include_router(sessions.router)
 app.include_router(bot.router)
 app.include_router(notifications.router)
+app.include_router(experts.router)
 
 settings.upload_root.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_root), name="uploads")

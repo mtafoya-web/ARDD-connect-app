@@ -13,6 +13,8 @@ frontend/*.log
 frontend/*.err
 frontend/*.tsbuildinfo
 
+/agingpharma_profiles.csv
+
 .claude
 .claude/settings.local.json
 .env

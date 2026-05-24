@@ -295,3 +295,52 @@ class NotificationOut(BaseModel):
 
 class NotificationUnreadCount(BaseModel):
     unread_count: int
+
+
+# -------------------------
+# Expert Schemas
+# -------------------------
+
+class ExpertOut(BaseModel):
+    id: int
+    csv_name: str
+    csv_email: str
+    csv_affiliation: str
+    csv_bio: str
+    csv_field: str
+    csv_keywords: str
+    csv_confidence_score: int
+    source_url: str
+    event_year: int
+    is_claimed: bool
+    claimed_at: datetime | None = None
+    verified_by_admin: bool = False
+    user_id: int | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ExpertWithUserOut(ExpertOut):
+    """Expert with claimed user's basic info"""
+    user: UserOut | None = None
+
+
+class ExpertClaimRequest(BaseModel):
+    """Request to claim an expert profile by email"""
+    email: EmailStr
+
+
+class ExpertVerificationRequest(BaseModel):
+    """Request admin to verify expert claim"""
+    csv_name: str = Field(min_length=1, max_length=255)
+    csv_affiliation: str = Field(min_length=1, max_length=255)
+
+
+class ExpertClaimResponse(BaseModel):
+    """Response when claiming an expert profile"""
+    success: bool
+    message: str
+    expert: ExpertOut | None = None
+    requires_admin_verification: bool = False
