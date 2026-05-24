@@ -42,14 +42,28 @@ export default function FeedScreen() {
 
   // TEMPORARY: Health check diagnostic test
   useEffect(() => {
-    console.log('[HealthCheck] API_BASE_URL:', API_BASE_URL);
-    fetch(`${API_BASE_URL}/health`)
+    const healthUrl = `${API_BASE_URL}/health`;
+    console.log('[HealthCheck] API_BASE_URL:', JSON.stringify(API_BASE_URL));
+    console.log('[HealthCheck] Full URL:', healthUrl);
+
+    if (!API_BASE_URL || !API_BASE_URL.startsWith('http')) {
+      console.error(
+        '[HealthCheck] Skipping fetch — API_BASE_URL is invalid:',
+        JSON.stringify(API_BASE_URL)
+      );
+      return;
+    }
+
+    fetch(healthUrl)
       .then(async (res) => {
         const body = await res.text();
         console.log('[HealthCheck] Status:', res.status, 'Body:', body);
       })
-      .catch((err) => {
-        console.error('[HealthCheck] Fetch error:', err);
+      .catch((err: unknown) => {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error('[HealthCheck] Fetch error message:', error.message);
+        console.error('[HealthCheck] Fetch error toString:', error.toString());
+        console.error('[HealthCheck] Fetch error stack:', error.stack);
       });
   }, []);
 
