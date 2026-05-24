@@ -175,7 +175,6 @@ export const MessagesPage = () => {
     try {
       const items = await getMessages(otherUserId);
       setMessages(items);
-      fetchConversations();
     } catch (err: any) {
       console.error('Failed to fetch messages:', err);
       setMessagesError(err?.response?.data?.detail || 'Could not load this conversation.');
