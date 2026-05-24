@@ -78,7 +78,12 @@ def global_feed(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user)
 ):
-    query = db.query(Post).options(joinedload(Post.author)).filter(Post.status == "published")
+    query = (
+        db.query(Post)
+        .options(joinedload(Post.author))
+        .filter(Post.status == "published")
+        .filter(Post.post_type != "reply")
+    )
     
     if category:
         query = query.filter(Post.category == category)
@@ -109,6 +114,7 @@ def home_feed(
         db.query(Post)
         .options(joinedload(Post.author))
         .filter(Post.status == "published")
+        .filter(Post.post_type != "reply")
         .filter(
             (Post.user_id.in_(following_ids))
             | (Post.user_id == current_user.id)
