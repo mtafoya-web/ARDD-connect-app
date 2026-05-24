@@ -40,6 +40,7 @@ export default function RootLayout() {
           <Stack.Screen name="matches/[id]" />
           <Stack.Screen name="matches/compare/[candidateId]" />
           <Stack.Screen name="chat/[otherUserId]" />
+          <Stack.Screen name="posts/[id]" />
           <Stack.Screen name="profile/edit" />
           <Stack.Screen name="admin/index" />
           <Stack.Screen name="admin/events" />

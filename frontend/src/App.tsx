@@ -10,6 +10,7 @@ import { PeoplePage } from './pages/PeoplePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { EditProfilePage } from './pages/EditProfilePage';
 import { MessagesPage } from './pages/MessagesPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { MatchComparePage } from './pages/MatchComparePage';
 import { PostDetailPage } from './pages/PostDetailPage';
 import { ChatWidget } from './components/ChatWidget';
@@ -61,6 +62,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MessagesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           }
         />

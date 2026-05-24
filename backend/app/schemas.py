@@ -243,3 +243,36 @@ class MessageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# -------------------------
+# Notification Schemas
+# -------------------------
+
+class NotificationActorOut(BaseModel):
+    id: int
+    username: str
+    full_name: str | None = ""
+    profile_photo_url: str | None = ""
+
+    class Config:
+        from_attributes = True
+
+
+class NotificationOut(BaseModel):
+    id: int
+    type: str
+    title: str
+    body: str | None = ""
+    target_type: str | None = None
+    target_id: int | None = None
+    read_at: datetime | None = None
+    created_at: datetime
+    actor: NotificationActorOut | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class NotificationUnreadCount(BaseModel):
+    unread_count: int

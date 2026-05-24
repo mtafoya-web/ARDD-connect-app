@@ -7,6 +7,7 @@ from ..models import Post, User, Follow, Like, Bookmark
 from ..schemas import PostCreate, PostUpdate, PostOut
 from ..auth import get_current_user, get_current_active_superuser, get_optional_current_user
 from ..utils.post_helpers import attach_interaction_data
+from ..utils.notifications import create_notification, display_name, notify_followers_of_post
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -33,6 +34,24 @@ def create_post(
     db.add(post)
     db.commit()
     db.refresh(post)
+
+    if post.post_type == "reply" and post.parent_id:
+        parent = db.query(Post).filter(Post.id == post.parent_id).first()
+        if parent:
+            create_notification(
+                db,
+                user_id=parent.user_id,
+                actor_id=current_user.id,
+                type="comment",
+                title=f"{display_name(current_user)} commented on your post",
+                body=post.content[:160],
+                target_type="post",
+                target_id=parent.id,
+            )
+            db.commit()
+    elif post.post_type == "original" and post.status == "published":
+        notify_followers_of_post(db, current_user, post.id, post.content)
+        db.commit()
 
     db_post = (
         db.query(Post)
@@ -216,6 +235,16 @@ def toggle_like(
     else:
         new_like = Like(post_id=post_id, user_id=current_user.id)
         db.add(new_like)
+        create_notification(
+            db,
+            user_id=post.user_id,
+            actor_id=current_user.id,
+            type="like",
+            title=f"{display_name(current_user)} liked your post",
+            body=post.content[:160],
+            target_type="post",
+            target_id=post.id,
+        )
         db.commit()
         return {"liked": True}
 
@@ -278,6 +307,18 @@ def repost(
     db.add(new_repost)
     db.commit()
     db.refresh(new_repost)
+
+    create_notification(
+        db,
+        user_id=post.user_id,
+        actor_id=current_user.id,
+        type="repost",
+        title=f"{display_name(current_user)} reposted your post",
+        body=post.content[:160],
+        target_type="post",
+        target_id=post.id,
+    )
+    db.commit()
     
     db_repost = db.query(Post).options(joinedload(Post.author)).filter(Post.id == new_repost.id).first()
     return attach_interaction_data(db_repost, db, current_user.id)

@@ -223,3 +223,23 @@ export interface AuthResponse {
   token_type: string;
   user: User;
 }
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export interface NotificationItem {
+  id: number;
+  type: 'message' | 'like' | 'post' | 'repost' | 'comment' | string;
+  title: string;
+  body?: string;
+  target_type?: string | null;
+  target_id?: number | null;
+  read_at?: string | null;
+  created_at: string;
+  actor?: Pick<User, 'id' | 'username' | 'full_name' | 'profile_photo_url'> | null;
+}
+
+export interface NotificationUnreadCount {
+  unread_count: number;
+}

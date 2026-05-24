@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 from ..models import Message, User
 from ..schemas import MessageOut, MessageCreate
 from ..auth import SECRET_KEY, ALGORITHM, get_current_user
+from ..utils.notifications import create_notification, display_name
 from jose import jwt, JWTError
 
 router = APIRouter(prefix="/messages", tags=["messages"])
@@ -85,6 +86,16 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                     content=content
                 )
                 db.add(db_message)
+                create_notification(
+                    db,
+                    user_id=receiver_id,
+                    actor_id=user.id,
+                    type="message",
+                    title=f"New message from {display_name(user)}",
+                    body=content[:160],
+                    target_type="user",
+                    target_id=user.id,
+                )
                 db.commit()
                 db.refresh(db_message)
                 logger.info(f"Message saved to database: ID {db_message.id}")

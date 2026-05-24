@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
+  Bell,
   Home,
   LogOut,
   Users,
@@ -13,10 +14,35 @@ import {
 import { Avatar } from './Avatar';
 import { ArddLogo } from './ArddLogo';
 import { ThemeToggle } from './ui/ThemeToggle';
+import { useEffect, useState } from 'react';
+import { getUnreadNotificationCount } from '../services/notificationsService';
 
 export const Navbar = () => {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    if (!token || !user) {
+      setUnreadNotifications(0);
+      return;
+    }
+    let active = true;
+    const load = async () => {
+      try {
+        const count = await getUnreadNotificationCount();
+        if (active) setUnreadNotifications(count);
+      } catch {
+        if (active) setUnreadNotifications(0);
+      }
+    };
+    load();
+    const id = window.setInterval(load, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+    };
+  }, [token, user]);
 
   const handleLogout = () => {
     logout();
@@ -62,6 +88,19 @@ export const Navbar = () => {
             <NavLink to="/messages" className={navClass}>
               <MessageSquare size={18} />
               <span className="hidden lg:inline">Intros</span>
+            </NavLink>
+          )}
+          {token && user && (
+            <NavLink to="/notifications" className={navClass}>
+              <span className="relative inline-flex">
+                <Bell size={18} />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -right-2 -top-2 min-w-4 rounded-full bg-status-error px-1 text-[10px] font-black leading-4 text-white">
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                  </span>
+                )}
+              </span>
+              <span className="hidden lg:inline">Alerts</span>
             </NavLink>
           )}
         </div>

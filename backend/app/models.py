@@ -148,3 +148,23 @@ class Message(Base):
     content = Column(Text, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    actor_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    type = Column(String(50), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    body = Column(Text, default="")
+    target_type = Column(String(50), nullable=True)
+    target_id = Column(Integer, nullable=True)
+
+    read_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user = relationship("User", foreign_keys=[user_id])
+    actor = relationship("User", foreign_keys=[actor_id])
