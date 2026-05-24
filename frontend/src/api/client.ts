@@ -1,6 +1,33 @@
 import axios from 'axios';
 
-const baseURL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000';
+/**
+ * Resolve the API base URL at module load.
+ *
+ * Vite inlines VITE_API_BASE_URL at build time. If the variable is
+ * missing from the deploy host (e.g. Vercel project settings), the
+ * built bundle would otherwise silently fall back to localhost — which
+ * the browser then blocks as mixed content from an https page, leaving
+ * the network tab eerily empty.
+ *
+ * Behavior:
+ *  - Local dev (vite/Vite dev server): falls back to http://localhost:8000.
+ *  - Production build: throws at load. The app white-screens with a
+ *    clear console error instead of pretending to work.
+ */
+const envBaseURL = import.meta.env.VITE_API_BASE_URL as string | undefined;
+
+let baseURL: string;
+if (envBaseURL) {
+  baseURL = envBaseURL;
+} else if (import.meta.env.DEV) {
+  baseURL = 'http://localhost:8000';
+} else {
+  throw new Error(
+    'VITE_API_BASE_URL is not set. The deploy host needs this env var ' +
+      '(e.g. https://ardd-connect-app.onrender.com). Configure it in your ' +
+      'hosting provider\'s environment variables and redeploy.',
+  );
+}
 
 export const clearStoredAuth = () => {
   localStorage.removeItem('ardd_token');
