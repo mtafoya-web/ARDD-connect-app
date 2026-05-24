@@ -14,6 +14,10 @@ frontend/*.err
 frontend/*.tsbuildinfo
 
 /agingpharma_profiles.csv
+/DEMO_SCRIPT.md
+/output/
+/tmp/pdf/
+/tmp/pdfs/
 
 .claude
 .claude/settings.local.json
