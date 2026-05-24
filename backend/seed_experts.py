@@ -27,22 +27,31 @@ def seed_experts():
             
             for row in reader:
                 try:
-                    # Check if expert with this email already exists
+                    name = row['name'].strip()[:250]
+                    affiliation = row.get('affiliation', '').strip()[:250]
+                    field = row.get('general_field_of_study', '').strip()[:95]
+                    
+                    # Check if expert with this name and affiliation already exists
                     existing = db.query(Expert).filter(
-                        Expert.csv_email == row['name']  # CSV uses 'name' as identifier
+                        Expert.csv_name == name,
+                        Expert.csv_affiliation == affiliation
                     ).first()
                     
                     if existing:
-                        print(f"Skipping {row['name']} - already exists")
+                        # print(f"Skipping {name} - already exists")
                         continue
                     
                     # Create new expert record
+                    import hashlib
+                    email_hash = hashlib.md5(f"{name}{affiliation}".encode()).hexdigest()
+                    dummy_email = f"{email_hash}@ardd-expert.internal"
+
                     expert = Expert(
-                        csv_name=row['name'].strip(),
-                        csv_email=row.get('source_url', '').strip(),  # Use source_url as unique identifier
-                        csv_affiliation=row.get('affiliation', '').strip(),
+                        csv_name=name,
+                        csv_email=dummy_email,
+                        csv_affiliation=affiliation,
                         csv_bio=row.get('biography', '').strip(),
-                        csv_field=row.get('general_field_of_study', '').strip(),
+                        csv_field=field,
                         csv_keywords=row.get('field_matched_keywords', '').strip(),
                         csv_confidence_score=int(row.get('field_confidence_score', 0)) if row.get('field_confidence_score', '0').isdigit() else 0,
                         source_url=row.get('source_url', '').strip(),
@@ -53,9 +62,14 @@ def seed_experts():
                     db.add(expert)
                     experts_added += 1
                     
+                    if experts_added % 100 == 0:
+                        db.commit()
+                        print(f"Added {experts_added} experts...")
+                    
                 except Exception as e:
-                    errors.append(f"Row {row['name']}: {str(e)}")
-                    print(f"Error processing {row['name']}: {e}")
+                    db.rollback()
+                    errors.append(f"Row {row.get('name')}: {str(e)}")
+                    print(f"Error processing {row.get('name')}: {e}")
         
         db.commit()
         
