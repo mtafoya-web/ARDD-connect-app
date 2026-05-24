@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
+import { API_BASE_URL } from '@/constants/Config';
 import { useAuthStore } from '@/store/auth-store';
 import { apiClient } from '@/lib/api-client';
 import { PostCard } from '@/components/post-card';
@@ -38,6 +39,19 @@ export default function FeedScreen() {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  // TEMPORARY: Health check diagnostic test
+  useEffect(() => {
+    console.log('[HealthCheck] API_BASE_URL:', API_BASE_URL);
+    fetch(`${API_BASE_URL}/health`)
+      .then(async (res) => {
+        const body = await res.text();
+        console.log('[HealthCheck] Status:', res.status, 'Body:', body);
+      })
+      .catch((err) => {
+        console.error('[HealthCheck] Fetch error:', err);
+      });
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
