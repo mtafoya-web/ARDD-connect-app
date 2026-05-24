@@ -11,7 +11,7 @@ const AnnouncementsPage = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await client.get<Post[]>('/posts/global');
+        const response = await client.get<Post[]>('/posts/global?category=announcement');
         setPosts(response.data);
       } catch (error) {
         console.error('Error fetching announcements:', error);

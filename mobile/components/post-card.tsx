@@ -231,7 +231,11 @@ export function PostCard({ post: initialPost, onDelete, onDeleted, showDelete }:
         ) : null}
       </View>
 
-      {post.post_type && post.post_type !== 'original' ? (
+      {post.category === 'announcement' ? (
+        <View style={{ flexDirection: 'row' }}>
+          <Badge label="OFFICIAL" variant="primary" size="sm" />
+        </View>
+      ) : post.post_type && post.post_type !== 'original' ? (
         <Badge label={post.post_type} variant="primary" size="sm" />
       ) : null}
 

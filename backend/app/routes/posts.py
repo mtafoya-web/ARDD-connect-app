@@ -22,6 +22,16 @@ def create_post(
     post_data = data.model_dump()
     if not current_user.is_superuser:
         post_data['status'] = 'published' # Regular users always publish
+        
+        # Restriction: Only admins or "allowed users" can post official announcements
+        if post_data.get('category') == 'announcement':
+            can_post = current_user.ardd_meta.get('can_post_announcements') if current_user.ardd_meta else False
+            if not can_post:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Only admins and authorized users can post official ARDD updates"
+                )
+
         # Only allow general category for non-admins if not specified
         if not post_data.get('category'):
             post_data['category'] = 'general'
@@ -64,14 +74,17 @@ def create_post(
 
 @router.get("/global", response_model=List[PostOut])
 def global_feed(
+    category: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user)
 ):
+    query = db.query(Post).options(joinedload(Post.author)).filter(Post.status == "published")
+    
+    if category:
+        query = query.filter(Post.category == category)
+        
     posts = (
-        db.query(Post)
-        .options(joinedload(Post.author))
-        .filter(Post.status == "published")
-        .order_by(Post.created_at.desc())
+        query.order_by(Post.created_at.desc())
         .limit(50)
         .all()
     )

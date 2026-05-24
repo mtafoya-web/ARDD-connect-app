@@ -11,6 +11,7 @@ import { PostCard } from '@/components/post-card';
 import { Avatar } from '@/components/avatar';
 import { LoadingState } from '@/components/loading-state';
 import { ErrorState } from '@/components/error-state';
+import { SegmentedControl } from '@/components/segmented-control';
 import type { Post } from '@/store/types';
 
 export default function FeedScreen() {
@@ -22,11 +23,16 @@ export default function FeedScreen() {
   const [error, setError] = useState<string | null>(null);
   const [newPostText, setNewPostText] = useState('');
   const [posting, setPosting] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [postCategory, setCategory] = useState<'general' | 'announcement'>('general');
+
+  const isAuthorized = user?.is_superuser || user?.ardd_meta?.can_post_announcements;
 
   const fetchPosts = useCallback(async () => {
     try {
       setError(null);
-      const data = await apiClient.get<any>('/posts/global');
+      const url = activeTab === 1 ? '/posts/global?category=announcement' : '/posts/global';
+      const data = await apiClient.get<any>(url);
       setPosts(Array.isArray(data) ? data : []);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load posts');
@@ -34,9 +40,10 @@ export default function FeedScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
+    setLoading(true);
     fetchPosts();
   }, [fetchPosts]);
 
@@ -78,8 +85,12 @@ export default function FeedScreen() {
     try {
       // Backend route is POST /posts/ (trailing slash) and expects `content`,
       // not `/posts` with `body`. The old form would 307-redirect AND 422.
-      await apiClient.post('/posts/', { content: newPostText.trim() });
+      await apiClient.post('/posts/', { 
+        content: newPostText.trim(),
+        category: postCategory
+      });
       setNewPostText('');
+      setCategory('general');
       fetchPosts();
     } catch {
       // Silent fail for post creation
@@ -95,17 +106,29 @@ export default function FeedScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
     >
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View>
-          <Text style={{ fontFamily: Fonts.bold, fontSize: 26, color: Colors.textPrimary }}>
-            Community Feed
-          </Text>
+      <View style={{ gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View>
+            <Text style={{ fontFamily: Fonts.bold, fontSize: 26, color: Colors.textPrimary }}>
+              Community Feed
+            </Text>
+          </View>
+          {posts.length > 0 && (
+            <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
+              {posts.length} posts
+            </Text>
+          )}
         </View>
-        {posts.length > 0 && (
-          <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
-            {posts.length} posts
-          </Text>
-        )}
+
+        <SegmentedControl
+          tabs={['All Posts', 'Official Updates']}
+          activeIndex={activeTab}
+          onTabPress={setActiveTab}
+          icons={[
+            <Ionicons name="people" size={14} color={activeTab === 0 ? Colors.white : Colors.textSecondary} />,
+            <Ionicons name="megaphone" size={14} color={activeTab === 1 ? Colors.white : Colors.textSecondary} />
+          ]}
+        />
       </View>
 
       {/* Create Post */}
@@ -149,6 +172,20 @@ export default function FeedScreen() {
               }}
             />
           </View>
+
+          {isAuthorized && (
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontFamily: Fonts.semiBold, fontSize: 12, color: Colors.textSecondary }}>
+                Post Category
+              </Text>
+              <SegmentedControl
+                tabs={['General', 'Official']}
+                activeIndex={postCategory === 'general' ? 0 : 1}
+                onTabPress={(idx) => setCategory(idx === 0 ? 'general' : 'announcement')}
+              />
+            </View>
+          )}
+
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <Pressable
               onPress={handlePost}
@@ -215,12 +252,19 @@ export default function FeedScreen() {
         <ErrorState message={error} onRetry={fetchPosts} />
       ) : posts.length === 0 ? (
         <View style={{ alignItems: 'center', padding: 40, gap: 12 }}>
-          <Ionicons name="newspaper-outline" size={48} color={Colors.textTertiary} />
+          <Ionicons 
+            name={activeTab === 1 ? "megaphone-outline" : "newspaper-outline"} 
+            size={48} 
+            color={Colors.textTertiary} 
+          />
           <Text style={{ fontFamily: Fonts.medium, fontSize: 15, color: Colors.textSecondary }}>
-            No posts yet
+            {activeTab === 1 ? "No official updates yet" : "No posts yet"}
           </Text>
           <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary, textAlign: 'center' }}>
-            Be the first to share something with the community.
+            {activeTab === 1 
+              ? "Stay tuned for important announcements from the ARDD team."
+              : "Be the first to share something with the community."
+            }
           </Text>
         </View>
       ) : (

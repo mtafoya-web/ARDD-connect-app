@@ -71,6 +71,8 @@ class Post(Base):
     status = Column(String(50), default="published") # draft, published, archived
     media = Column(JSON, default=list) # Array of media objects: [{type, url, publicId, altText}]
     
+    ardd_meta = Column(JSON, default=dict)
+    
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     # Relationships for threaded conversations and reposts

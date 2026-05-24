@@ -57,6 +57,7 @@ ATTENDEES = [
             "preferredIntroStyle": "warm",
             "channels": ["#ml-longevity", "#open-science", "#general-ardd2026"],
             "introTagline": "Aging-clock builder hunting in-vivo validation partners.",
+            "can_post_announcements": True,
         },
     },
     {
@@ -539,12 +540,62 @@ INTERESTS_BY_USERNAME = {
 }
 
 
+COMMUNITY_POSTS = [
+    {
+        "username": "maya_chen",
+        "content": "Just landed in Copenhagen! Looking forward to the aging clock panel tomorrow. If anyone wants to discuss multi-omics integration, let's grab coffee! ☕️",
+        "category": "general"
+    },
+    {
+        "username": "alex_vargas",
+        "content": "Excited to share our latest pre-clinical data on in-vivo reprogramming at the Pitch Showcase. We're seeing some really promising safety signals. #ARDD2026",
+        "category": "general"
+    },
+    {
+        "username": "priya_natarajan",
+        "content": "The mechanism of senescence-immune crosstalk is becoming much clearer. Great session today! Does anyone have experience with the new Seno-ID biomarkers?",
+        "category": "general"
+    },
+    {
+        "username": "wen_liu",
+        "content": "Hiring postdocs for our ML-aging projects! If you are at ARDD and interested in generative models for longevity, come find me at Hall C.",
+        "category": "general"
+    }
+]
+
+OFFICIAL_UPDATES = [
+    {
+        "username": "admin",
+        "title": "Welcome to ARDD 2026!",
+        "content": "We are thrilled to welcome over 800 delegates to Copenhagen for the 13th Aging Research and Drug Discovery conference. Please ensure you have the app installed for real-time schedule updates and networking.",
+        "category": "announcement"
+    },
+    {
+        "username": "maya_chen",
+        "title": "Room Change: Hall A to Main Hall",
+        "content": "The 'Aging Clocks' panel at 10:30 AM has been moved to the Main Hall to accommodate more attendees. See you there!",
+        "category": "announcement"
+    },
+    {
+        "username": "admin",
+        "title": "Day 1 Digest",
+        "content": "What a fantastic first day! From the Opening Keynote to the Welcome Mixer, the energy has been incredible. Check the 'My Schedule' tab for your personalized plan for tomorrow.",
+        "category": "announcement"
+    }
+]
+
+
 def reset_seed(db: Session) -> None:
     """Remove every previously seeded row (ardd_meta.seed == True)."""
     # Find seeded users first
     seeded_user_ids = [u.id for u in db.query(User).filter(
         User.ardd_meta["seed"].as_string() == "true"
     ).all()]
+    
+    # Also include the admin in seeded users for post cleanup if we want
+    admin = db.query(User).filter(User.is_superuser.is_(True)).first()
+    if admin:
+        seeded_user_ids.append(admin.id)
     
     if seeded_user_ids:
         # 1. Delete notifications involving these users
@@ -682,9 +733,11 @@ def run(reset: bool = False) -> None:
 
         # ---- create users, then patch sessionsOfInterest with real ids ----
         attendee_by_username: dict[str, dict] = {a["username"]: a for a in ATTENDEES}
+        user_objs_by_username = {}
         for spec in ATTENDEES:
             user = get_or_create_user(db, spec)
             db.flush()
+            user_objs_by_username[spec["username"]] = user
             interest_titles = INTERESTS_BY_USERNAME.get(spec["username"], [])
             interest_ids = [title_to_id[t] for t in interest_titles if t in title_to_id]
             meta = dict(user.ardd_meta or {})
@@ -710,13 +763,33 @@ def run(reset: bool = False) -> None:
             event.ardd_meta = meta
         db.commit()
 
+        # ---- seed posts ----
+        for spec in COMMUNITY_POSTS + OFFICIAL_UPDATES:
+            author = admin if spec["username"] == "admin" else user_objs_by_username.get(spec["username"])
+            if not author:
+                continue
+            
+            post = Post(
+                title=spec.get("title", ""),
+                content=spec["content"],
+                category=spec["category"],
+                status="published",
+                user_id=author.id,
+                ardd_meta={"seed": True}
+            )
+            db.add(post)
+        db.commit()
+
         n_users = db.query(User).filter(
             User.ardd_meta["seed"].as_string() == "true"
         ).count()
         n_events = db.query(Event).filter(
             Event.ardd_meta["seed"].as_string() == "true"
         ).count()
-        print(f"[ok] seeded {n_users} attendees and {n_events} sessions")
+        n_posts = db.query(Post).filter(
+            Post.ardd_meta["seed"].as_string() == "true"
+        ).count()
+        print(f"[ok] seeded {n_users} attendees, {n_events} sessions, and {n_posts} posts")
         print(f"[info] demo password for every seeded attendee: {DEMO_PASSWORD}")
     finally:
         db.close()

@@ -15,6 +15,7 @@ MIGRATIONS = [
     ("users", "reset_token_hash", "ALTER TABLE users ADD COLUMN reset_token_hash VARCHAR(255)"),
     ("users", "reset_token_expires_at", "ALTER TABLE users ADD COLUMN reset_token_expires_at TIMESTAMP WITH TIME ZONE"),
     ("events", "ardd_meta", "ALTER TABLE events ADD COLUMN ardd_meta JSON DEFAULT '{}'"),
+    ("posts", "ardd_meta", "ALTER TABLE posts ADD COLUMN ardd_meta JSON DEFAULT '{}'"),
 ]
 
 for table, column, sql in MIGRATIONS:
