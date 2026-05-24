@@ -275,7 +275,9 @@ export const PostCard = ({ post: initialPost, onDelete }: PostCardProps) => {
             </div>
           )}
 
-          <p className="mt-2 text-[15px] leading-7 text-foreground-secondary" dangerouslySetInnerHTML={renderRichText(post.content)} />
+          {post.content && (
+            <p className="mt-2 text-[15px] leading-7 text-foreground-secondary" dangerouslySetInnerHTML={renderRichText(post.content)} />
+          )}
           
           {post.media && post.media.length > 0 && (
             <div className={`mt-4 grid gap-2 ${post.media.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>

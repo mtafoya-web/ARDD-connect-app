@@ -317,7 +317,7 @@ def repost(
         return attach_interaction_data(post, db, current_user.id)
 
     new_repost = Post(
-        content=post.content, # Or empty content for a pure repost
+        content="",
         user_id=current_user.id,
         parent_id=post_id,
         post_type="repost",

@@ -255,17 +255,19 @@ export function PostCard({ post: initialPost, onDelete, onDeleted, showDelete }:
           {post.title}
         </Text>
       ) : null}
-      <Text
-        selectable
-        style={{
-          fontFamily: Fonts.regular,
-          fontSize: 14,
-          color: Colors.textSecondary,
-          lineHeight: 20,
-        }}
-      >
-        {post.content}
-      </Text>
+      {post.content ? (
+        <Text
+          selectable
+          style={{
+            fontFamily: Fonts.regular,
+            fontSize: 14,
+            color: Colors.textSecondary,
+            lineHeight: 20,
+          }}
+        >
+          {post.content}
+        </Text>
+      ) : null}
 
       {post.media?.length ? (
         <View style={{ gap: 8 }}>
