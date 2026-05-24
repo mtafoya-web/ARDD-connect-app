@@ -129,6 +129,7 @@ def _serialize(event: Event, scoring: dict | None = None) -> dict:
         "location": event.location,
         "start_date": event.start_date.isoformat() if event.start_date else None,
         "end_date": event.end_date.isoformat() if event.end_date else None,
+        "image_url": event.image_url,
         "status": event.status,
         "sessionType": sm.get("sessionType"),
         "topicTags": sm.get("topicTags", []),

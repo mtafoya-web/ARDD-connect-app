@@ -231,6 +231,7 @@ export interface SessionDTO {
   location: string;
   start_date: string;
   end_date: string;
+  image_url?: string;
   sessionType?: string;
   topicTags?: string[];
   speakers?: { name: string; affiliation?: string }[];

@@ -282,6 +282,7 @@ SESSIONS = [
         "description": "A field-wide outlook on translational progress in aging therapeutics, biomarker readiness, and regulatory pathways.",
         "location": "Main Hall, Tivoli Congress Center",
         "start_date": at(DAY1, 9), "end_date": at(DAY1, 10),
+        "image_url": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "keynote",
             "topicTags": ["therapeutic_modalities", "geroscience_clinical"],
@@ -294,6 +295,7 @@ SESSIONS = [
         "description": "Panel on the state of aging clocks across modalities, their clinical applicability, and validation challenges.",
         "location": "Hall A",
         "start_date": at(DAY1, 10, 30), "end_date": at(DAY1, 12),
+        "image_url": "https://images.unsplash.com/photo-1532187863486-abf9d39d9995?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["aging_clocks", "compbio_aging", "longevity_biomarkers"],
@@ -308,6 +310,7 @@ SESSIONS = [
         "description": "Latest pre-clinical data on partial OSK reprogramming and the open questions on tissue-specific safety.",
         "location": "Hall B",
         "start_date": at(DAY1, 13, 30), "end_date": at(DAY1, 15),
+        "image_url": "https://images.unsplash.com/photo-1579154235884-10f5fe588f60?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["partial_reprogramming", "epigenetics", "therapeutic_modalities"],
@@ -320,6 +323,7 @@ SESSIONS = [
         "description": "Where machine-learning approaches actually move the needle in aging drug discovery, with honest results.",
         "location": "Hall C",
         "start_date": at(DAY1, 15, 30), "end_date": at(DAY1, 17),
+        "image_url": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["ai_drug_discovery", "compbio_aging"],
@@ -332,6 +336,7 @@ SESSIONS = [
         "description": "Open networking with all attendees over drinks and snacks.",
         "location": "Garden Foyer",
         "start_date": at(DAY1, 18), "end_date": at(DAY1, 20),
+        "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "mixer",
             "topicTags": [],
@@ -345,6 +350,7 @@ SESSIONS = [
         "description": "Mechanistic updates on cellular senescence and the current clinical landscape of senolytics.",
         "location": "Main Hall",
         "start_date": at(DAY2, 9), "end_date": at(DAY2, 10, 30),
+        "image_url": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["senescence", "therapeutic_modalities", "geroscience_clinical"],
@@ -357,6 +363,7 @@ SESSIONS = [
         "description": "Workshop on deploying methylation and proteomic clocks in clinical settings; CLIA pathways and pitfalls.",
         "location": "Hall A",
         "start_date": at(DAY2, 11), "end_date": at(DAY2, 12, 30),
+        "image_url": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "workshop",
             "topicTags": ["aging_clocks", "longevity_biomarkers", "geroscience_clinical"],
@@ -369,6 +376,7 @@ SESSIONS = [
         "description": "Investor panel on what is and isn't getting funded in longevity right now.",
         "location": "Hall B",
         "start_date": at(DAY2, 13, 30), "end_date": at(DAY2, 15),
+        "image_url": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["therapeutic_modalities", "ai_drug_discovery"],
@@ -381,6 +389,7 @@ SESSIONS = [
         "description": "Mechanistic deep-dive on proteostasis collapse, mitochondrial dysfunction, and how the hallmarks connect.",
         "location": "Hall C",
         "start_date": at(DAY2, 15, 30), "end_date": at(DAY2, 17),
+        "image_url": "https://images.unsplash.com/photo-1530210124550-912dc1381cb8?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["proteostasis", "mitochondrial", "senescence"],
@@ -393,6 +402,7 @@ SESSIONS = [
         "description": "Eight early-stage longevity startups present to investors and partners.",
         "location": "Main Hall",
         "start_date": at(DAY2, 17), "end_date": at(DAY2, 18, 30),
+        "image_url": "https://images.unsplash.com/photo-1559136555-9303baea8ebd?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "pitch",
             "topicTags": ["therapeutic_modalities", "longevity_biomarkers", "ai_drug_discovery"],
@@ -406,6 +416,7 @@ SESSIONS = [
         "description": "What it takes to run a geroscience trial and the realistic regulatory pathways.",
         "location": "Main Hall",
         "start_date": at(DAY3, 9), "end_date": at(DAY3, 10, 30),
+        "image_url": "https://images.unsplash.com/photo-1582719471384-894fbb16e074?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["geroscience_clinical", "therapeutic_modalities"],
@@ -418,6 +429,7 @@ SESSIONS = [
         "description": "How the aging immune system drives age-related disease and where therapeutic leverage exists.",
         "location": "Hall A",
         "start_date": at(DAY3, 11), "end_date": at(DAY3, 12, 30),
+        "image_url": "https://images.unsplash.com/photo-1532187643603-ba119ca4109e?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["immunoaging", "senescence", "cancer_aging"],
@@ -430,6 +442,7 @@ SESSIONS = [
         "description": "Generative chemistry and protein-design models applied specifically to aging targets.",
         "location": "Hall B",
         "start_date": at(DAY3, 13), "end_date": at(DAY3, 14, 30),
+        "image_url": "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "panel",
             "topicTags": ["ai_drug_discovery", "compbio_aging", "therapeutic_modalities"],
@@ -442,6 +455,7 @@ SESSIONS = [
         "description": "Curated networking block for BD, partnering, and investor conversations.",
         "location": "Networking Hall B",
         "start_date": at(DAY3, 14, 30), "end_date": at(DAY3, 16),
+        "image_url": "https://images.unsplash.com/photo-1528605248644-14dd04cb2201?q=80&w=2070&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "mixer",
             "topicTags": [],
@@ -454,6 +468,7 @@ SESSIONS = [
         "description": "Closing keynote on the next decade — what to expect, what to watch, what to build.",
         "location": "Main Hall",
         "start_date": at(DAY3, 16, 30), "end_date": at(DAY3, 17, 30),
+        "image_url": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2069&auto=format&fit=crop",
         "ardd_meta": {
             "sessionType": "keynote",
             "topicTags": ["therapeutic_modalities", "geroscience_clinical"],
@@ -631,10 +646,13 @@ def get_or_create_event(db: Session, spec: dict, creator_id: int) -> Event:
             location=spec["location"],
             start_date=spec["start_date"],
             end_date=spec["end_date"],
+            image_url=spec.get("image_url", ""),
             status="current",
             created_by=creator_id,
         )
         db.add(event)
+    
+    # Update fields even if event exists to ensure fresh seed
     meta = dict(spec["ardd_meta"])
     meta["seed"] = True
     event.ardd_meta = meta
@@ -642,6 +660,7 @@ def get_or_create_event(db: Session, spec: dict, creator_id: int) -> Event:
     event.end_date = spec["end_date"]
     event.location = spec["location"]
     event.description = spec["description"]
+    event.image_url = spec.get("image_url", "")
     event.status = "current"
     return event
 

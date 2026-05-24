@@ -28,7 +28,8 @@
 
 ### D. Dynamic Conference Feed & Smart Schedule
 *   **Personalized Agenda**: Sessions are scored and ranked based on a user's research focus.
-*   **Real-time Feed**: A social layer for sharing insights, photos from Copenhagen, and session takeaways.
+*   **High-Fidelity Visuals**: Every event and session includes high-quality imagery (integrated with **Cloudinary** for optimal delivery) to provide a rich, professional aesthetic.
+*   **Real-time Feed**: A social layer for sharing insights, photos from Copenhagen, and session takeaways, supporting both images and videos via Cloudinary.
 *   **Direct Messaging**: Real-time professional communication enabled immediately after a match is made.
 
 ## 3. Technical Stack

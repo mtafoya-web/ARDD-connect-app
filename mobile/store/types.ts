@@ -127,6 +127,7 @@ export interface Session {
   location: string;
   start_date: string;
   end_date: string;
+  image_url?: string;
   status?: string;
   sessionType?: string;
   topicTags?: string[];

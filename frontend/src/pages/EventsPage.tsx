@@ -54,11 +54,31 @@ const SessionRow = ({
   const tags = s.topicTags || [];
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border-secondary bg-surface p-5 shadow-sm transition hover:border-border-primary hover:shadow-md">
-      <div className="flex flex-wrap items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground-tertiary">
-            <span className="inline-flex items-center gap-1">
+    <div className="overflow-hidden rounded-lg border border-border-secondary bg-surface shadow-sm transition hover:border-border-primary hover:shadow-md">
+      {s.image_url && (
+        <div className="relative aspect-[21/9] w-full overflow-hidden bg-surface-muted">
+          <img
+            src={s.image_url}
+            alt={s.title}
+            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+          />
+          {s.sessionType && (
+            <div className="absolute left-4 top-4 rounded-full bg-surface/95 px-2.5 py-0.5 text-[10px] font-black tracking-widest text-accent shadow-sm backdrop-blur-sm">
+              {s.sessionType.toUpperCase()}
+            </div>
+          )}
+        </div>
+      )}
+      <div className="p-5">
+        <div className="flex flex-wrap items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground-tertiary">
+              {!s.image_url && s.sessionType && (
+                <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-black tracking-widest text-accent">
+                  {s.sessionType.toUpperCase()}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1">
               <Calendar size={12} className="text-accent" />
               {formatDay(s.start_date)}
             </span>
@@ -149,6 +169,7 @@ const SessionRow = ({
           </button>
         )}
       </div>
+    </div>
     </div>
   );
 };
