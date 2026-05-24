@@ -11,7 +11,16 @@ import { InputField } from '@/components/input-field';
 import { Button } from '@/components/button';
 import type { User } from '@/store/types';
 
-interface RegisterResponse {
+// POST /auth/register returns a UserOut object (not a token)
+// After registration, we auto-login to get the token
+interface RegisterUserOut {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+}
+
+interface LoginResponse {
   access_token: string;
   token_type: string;
   user: User;
@@ -36,13 +45,19 @@ export default function RegisterScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient.post<RegisterResponse>('/auth/register', {
-        full_name: fullName.trim(),
+      // Register returns UserOut (no token), then auto-login
+      await apiClient.post<RegisterUserOut>('/auth/register', {
         username: username.trim(),
         email: email.trim(),
         password: password,
       });
-      setAuth(data.access_token, data.user);
+      // Auto-login after successful registration (form-urlencoded with username + password)
+      const loginData = await apiClient.post<LoginResponse>(
+        '/auth/login',
+        { username: username.trim(), password: password },
+        true
+      );
+      setAuth(loginData.access_token, loginData.user);
       router.replace('/(tabs)');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Registration failed.');

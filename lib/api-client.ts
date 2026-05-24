@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/auth-store';
 class ApiClient {
   private baseUrl = API_BASE_URL;
 
-  private getHeaders(contentType = 'application/json'): HeadersInit {
+  private getHeaders(contentType?: string): HeadersInit {
     const headers: HeadersInit = {};
     if (contentType) {
       headers['Content-Type'] = contentType;
@@ -20,7 +20,7 @@ class ApiClient {
     const url = `${this.baseUrl}${path}`;
     const res = await fetch(url, {
       method: 'GET',
-      headers: this.getHeaders(),
+      headers: this.getHeaders('application/json'),
     });
     if (res.status === 401) {
       useAuthStore.getState().logout();
@@ -28,7 +28,7 @@ class ApiClient {
     }
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      console.error(`[ApiClient] GET ${url} failed:`, res.status, body);
+      console.error(`[ApiClient] GET ${url} → ${res.status}`, body);
       throw new Error(`API Error ${res.status}: ${body || res.statusText}`);
     }
     return res.json();
@@ -37,20 +37,25 @@ class ApiClient {
   async post<T>(path: string, body?: unknown, isFormEncoded = false): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     let headers: HeadersInit;
-    let bodyStr: string | undefined;
+    let bodyPayload: string | FormData | undefined;
 
     if (isFormEncoded && body && typeof body === 'object') {
+      // x-www-form-urlencoded — required for /auth/login
       headers = this.getHeaders('application/x-www-form-urlencoded');
-      bodyStr = new URLSearchParams(body as Record<string, string>).toString();
+      bodyPayload = new URLSearchParams(body as Record<string, string>).toString();
+    } else if (body instanceof FormData) {
+      // Multipart — do NOT set Content-Type, let fetch set the boundary
+      headers = this.getHeaders(undefined);
+      bodyPayload = body;
     } else {
       headers = this.getHeaders('application/json');
-      bodyStr = body ? JSON.stringify(body) : undefined;
+      bodyPayload = body ? JSON.stringify(body) : undefined;
     }
 
     const res = await fetch(url, {
       method: 'POST',
       headers,
-      body: bodyStr,
+      body: bodyPayload,
     });
     if (res.status === 401) {
       useAuthStore.getState().logout();
@@ -58,7 +63,7 @@ class ApiClient {
     }
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
-      console.error(`[ApiClient] POST ${url} failed:`, res.status, errBody);
+      console.error(`[ApiClient] POST ${url} → ${res.status}`, errBody);
       throw new Error(errBody || `API Error ${res.status}: ${res.statusText}`);
     }
     return res.json();
@@ -68,7 +73,7 @@ class ApiClient {
     const url = `${this.baseUrl}${path}`;
     const res = await fetch(url, {
       method: 'DELETE',
-      headers: this.getHeaders(),
+      headers: this.getHeaders('application/json'),
     });
     if (res.status === 401) {
       useAuthStore.getState().logout();
@@ -76,7 +81,7 @@ class ApiClient {
     }
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      console.error(`[ApiClient] DELETE ${url} failed:`, res.status, body);
+      console.error(`[ApiClient] DELETE ${url} → ${res.status}`, body);
       throw new Error(`API Error ${res.status}: ${body || res.statusText}`);
     }
     return res.json();

@@ -34,13 +34,14 @@ export default function MatchDetailScreen() {
 
   useEffect(() => {
     const fetchMatch = async () => {
-      if (!id || id === 'undefined') {
+      const numericId = Number(id);
+      if (!id || id === 'undefined' || !Number.isFinite(numericId)) {
         setError('Invalid match ID');
         setLoading(false);
         return;
       }
       try {
-        const data = await apiClient.get<MatchDetail>(`/matches/me/${id}`);
+        const data = await apiClient.get<MatchDetail>(`/matches/compare/${numericId}`);
         setMatch(data);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to load match');

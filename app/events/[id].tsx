@@ -40,13 +40,19 @@ export default function EventDetailScreen() {
 
   useEffect(() => {
     const fetchEvent = async () => {
+      const numericId = Number(id);
+      if (!id || !Number.isFinite(numericId)) {
+        setError('Invalid event ID');
+        setLoading(false);
+        return;
+      }
       try {
-        const data = await apiClient.get<EventDetail>(`/sessions/${id}`);
+        const data = await apiClient.get<EventDetail>(`/sessions/${numericId}`);
         setEvent(data);
       } catch (e: unknown) {
-        // Try events endpoint
+        // Try events endpoint as fallback
         try {
-          const data = await apiClient.get<EventDetail>(`/events/${id}`);
+          const data = await apiClient.get<EventDetail>(`/events/${numericId}`);
           setEvent(data);
         } catch {
           setError(e instanceof Error ? e.message : 'Failed to load event');
@@ -60,10 +66,13 @@ export default function EventDetailScreen() {
 
   const handleStar = async () => {
     if (!isLoggedIn || !event) return;
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) return;
     setStarring(true);
     try {
-      await apiClient.post(`/sessions/${id}/star`);
-      setEvent({ ...event, is_starred: !event.is_starred });
+      const newStarred = !event.is_starred;
+      await apiClient.post(`/sessions/${numericId}/star`, { star: newStarred });
+      setEvent({ ...event, is_starred: newStarred });
     } catch {
       // Silent
     } finally {
@@ -170,7 +179,7 @@ export default function EventDetailScreen() {
       </View>
 
       {/* Speakers */}
-      {event.speakers && event.speakers.length > 0 && (
+      {Array.isArray(event.speakers) && event.speakers.length > 0 && (
         <View
           style={{
             backgroundColor: Colors.card,
@@ -197,7 +206,7 @@ export default function EventDetailScreen() {
       )}
 
       {/* Topics */}
-      {event.topics && event.topics.length > 0 && (
+      {Array.isArray(event.topics) && event.topics.length > 0 && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {event.topics.map((topic, i) => (
             <Badge key={i} label={topic} variant="primary" size="md" />

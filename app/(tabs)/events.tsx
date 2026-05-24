@@ -28,10 +28,10 @@ export default function EventsScreen() {
     try {
       setError(null);
       if (activeTab === 0) {
-        const data = await apiClient.get<any>('/events/?status=current');
+        const data = await apiClient.get<any>('/sessions/');
         setEvents(Array.isArray(data) ? data : []);
       } else if (activeTab === 1 && isLoggedIn) {
-        const data = await apiClient.get<any>('/sessions/recommended');
+        const data = await apiClient.get<any>('/sessions/recommended?limit=20');
         setRecommended(Array.isArray(data) ? data : []);
       } else if (activeTab === 2 && isLoggedIn) {
         const data = await apiClient.get<any>('/sessions/my');
@@ -56,11 +56,12 @@ export default function EventsScreen() {
   };
 
   const handleStar = async (sessionId: number) => {
+    if (!Number.isFinite(sessionId)) return;
     try {
-      await apiClient.post(`/sessions/${sessionId}/star`);
+      await apiClient.post(`/sessions/${sessionId}/star`, { star: true });
       // Optimistic update
       const updateList = (list: Session[]) =>
-        list.map((s) => (s.id === sessionId ? { ...s, is_starred: true } : s));
+        (Array.isArray(list) ? list : []).map((s) => (s.id === sessionId ? { ...s, is_starred: true } : s));
       setRecommended(updateList);
       setMySchedule(updateList);
     } catch {

@@ -83,7 +83,7 @@ export function SessionCard({ session, showMatchScore, showReasons, onStar }: Se
       </Text>
 
       {/* Topics */}
-      {session.topics && session.topics.length > 0 && (
+      {Array.isArray(session.topics) && session.topics.length > 0 && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {session.topics.map((topic, i) => (
             <View
@@ -104,7 +104,7 @@ export function SessionCard({ session, showMatchScore, showReasons, onStar }: Se
       )}
 
       {/* Match reasons */}
-      {showReasons && session.match_reasons && session.match_reasons.length > 0 && (
+      {showReasons && Array.isArray(session.match_reasons) && session.match_reasons.length > 0 && (
         <View style={{ gap: 4 }}>
           {session.match_reasons.map((reason, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>

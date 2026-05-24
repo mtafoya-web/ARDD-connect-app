@@ -253,7 +253,7 @@ export default function ProfileScreen() {
             </Text>
           </View>
         ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} showDelete />)
+          (Array.isArray(posts) ? posts : []).map((post) => <PostCard key={post.id} post={post} showDelete />)
         )}
       </View>
 

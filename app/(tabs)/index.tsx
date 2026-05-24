@@ -237,12 +237,12 @@ export default function FeedScreen() {
           </Text>
         </View>
       ) : (
-        posts.map((post) => (
+        (Array.isArray(posts) ? posts : []).map((post) => (
           <PostCard
             key={post.id}
             post={post}
             onLike={() => handleLike(post.id)}
-            showDelete={post.author.id === user?.id}
+            showDelete={post.author?.id === user?.id}
           />
         ))
       )}

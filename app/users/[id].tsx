@@ -24,8 +24,14 @@ export default function UserProfileScreen() {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      const numericId = Number(id);
+      if (!id || id === 'undefined' || !Number.isFinite(numericId)) {
+        setError('Invalid user ID');
+        setLoading(false);
+        return;
+      }
       try {
-        const data = await apiClient.get<User>(`/users/${id}`);
+        const data = await apiClient.get<User>(`/users/${numericId}`);
         setProfile(data);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to load profile');
@@ -38,8 +44,10 @@ export default function UserProfileScreen() {
 
   const handleFollow = async () => {
     if (!isLoggedIn || !profile) return;
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) return;
     try {
-      await apiClient.post(`/users/${id}/follow`);
+      await apiClient.post(`/users/${numericId}/follow`);
     } catch {
       // Silent
     }
