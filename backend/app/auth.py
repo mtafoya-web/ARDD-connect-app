@@ -17,7 +17,10 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+# 24h default. Long enough that conference attendees don't get logged out
+# mid-day. Override per-environment with the ACCESS_TOKEN_EXPIRE_MINUTES
+# env var if you want stricter (e.g. 60) or longer sessions.
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY is not set")
