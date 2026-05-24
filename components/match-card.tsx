@@ -68,12 +68,12 @@ export function MatchCard({ match }: MatchCardProps) {
       </View>
 
       {/* Match type */}
-      {match.match_type && (
+      {match.match_type ? (
         <Badge label={match.match_type} variant="outline" size="sm" />
-      )}
+      ) : null}
 
       {/* Quote */}
-      {match.quote && (
+      {match.quote ? (
         <Text
           style={{
             fontFamily: Fonts.regular,
@@ -83,12 +83,12 @@ export function MatchCard({ match }: MatchCardProps) {
             lineHeight: 18,
           }}
         >
-          &ldquo;{match.quote}&rdquo;
+          {`“${match.quote}”`}
         </Text>
-      )}
+      ) : null}
 
       {/* Reasons */}
-      {match.reasons && (Array.isArray(match.reasons) ? match.reasons : []).length > 0 && (
+      {(Array.isArray(match.reasons) ? match.reasons : []).length > 0 && (
         <View style={{ gap: 4 }}>
           {(Array.isArray(match.reasons) ? match.reasons : []).map((reason, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
@@ -102,7 +102,7 @@ export function MatchCard({ match }: MatchCardProps) {
       )}
 
       {/* Conversation starter */}
-      {match.conversation_starter && (
+      {match.conversation_starter ? (
         <View
           style={{
             backgroundColor: Colors.background,
@@ -127,7 +127,7 @@ export function MatchCard({ match }: MatchCardProps) {
             {match.conversation_starter}
           </Text>
         </View>
-      )}
+      ) : null}
 
       {/* Actions */}
       <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>

@@ -126,7 +126,7 @@ export default function EventDetailScreen() {
       </View>
 
       {/* Description */}
-      {event.description && (
+      {event.description ? (
         <Text
           selectable
           style={{
@@ -138,7 +138,7 @@ export default function EventDetailScreen() {
         >
           {event.description}
         </Text>
-      )}
+      ) : null}
 
       {/* Metadata */}
       <View
@@ -152,30 +152,30 @@ export default function EventDetailScreen() {
           borderColor: Colors.border,
         }}
       >
-        {(event.location || event.hall) && (
+        {(event.location || event.hall) ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ionicons name="location-outline" size={18} color={Colors.primary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
               {event.hall || event.location}
             </Text>
           </View>
-        )}
-        {event.date && (
+        ) : null}
+        {event.date ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
               {event.date}
             </Text>
           </View>
-        )}
-        {event.start_time && (
+        ) : null}
+        {event.start_time ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ionicons name="time-outline" size={18} color={Colors.primary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
               {event.start_time}{event.end_time ? ` – ${event.end_time}` : ''}
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Speakers */}

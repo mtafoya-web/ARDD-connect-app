@@ -161,7 +161,7 @@ export default function MatchCompareScreen() {
 
         {tagline ? (
           <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary, fontStyle: 'italic', lineHeight: 18 }}>
-            &ldquo;{tagline}&rdquo;
+            {`“${tagline}”`}
           </Text>
         ) : null}
 
@@ -259,9 +259,9 @@ export default function MatchCompareScreen() {
           <Text style={{ fontFamily: Fonts.bold, fontSize: 28, color: Colors.textPrimary }}>
             Match · {data.score ?? 0}
           </Text>
-          {data.scenario && (
+          {data.scenario ? (
             <Badge label={data.scenario} variant="outline" size="md" />
-          )}
+          ) : null}
         </View>
       </View>
 

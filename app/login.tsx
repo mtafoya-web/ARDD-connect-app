@@ -180,7 +180,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          {error && (
+          {error ? (
             <Text
               selectable
               style={{
@@ -192,7 +192,7 @@ export default function LoginScreen() {
             >
               {error}
             </Text>
-          )}
+          ) : null}
 
           <Button
             title="Sign in"

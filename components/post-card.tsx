@@ -67,12 +67,12 @@ export function PostCard({ post, onLike, onBookmark, onDelete, showDelete }: Pos
       </View>
 
       {/* Post type badge */}
-      {post.post_type && (
+      {post.post_type ? (
         <Badge label={post.post_type} variant="primary" size="sm" />
-      )}
+      ) : null}
 
       {/* Content */}
-      {post.title && (
+      {post.title ? (
         <Text
           selectable
           style={{
@@ -83,7 +83,7 @@ export function PostCard({ post, onLike, onBookmark, onDelete, showDelete }: Pos
         >
           {post.title}
         </Text>
-      )}
+      ) : null}
       <Text
         selectable
         style={{

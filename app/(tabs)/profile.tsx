@@ -116,17 +116,17 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
 
-        {user.bio && (
+        {user.bio ? (
           <Text selectable style={{ fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, lineHeight: 20 }}>
             {user.bio}
           </Text>
-        )}
+        ) : null}
 
         {/* Tags */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {user.role && <Badge label={user.role} variant="outline" />}
-          {user.research_focus && <Badge label={user.research_focus} variant="outline" />}
-          {user.location && <Badge label={user.location} variant="primary" />}
+          {user.role ? <Badge label={user.role} variant="outline" /> : null}
+          {user.research_focus ? <Badge label={user.research_focus} variant="outline" /> : null}
+          {user.location ? <Badge label={user.location} variant="primary" /> : null}
         </View>
       </View>
 
@@ -145,38 +145,38 @@ export default function ProfileScreen() {
         <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
           Profile details
         </Text>
-        {user.email && (
+        {user.email ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="mail-outline" size={15} color={Colors.textTertiary} />
             <Text selectable style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {user.email}
             </Text>
           </View>
-        )}
-        {user.institution && (
+        ) : null}
+        {user.institution ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="business-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {user.institution}
             </Text>
           </View>
-        )}
-        {user.research_focus && (
+        ) : null}
+        {user.research_focus ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="flask-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {user.research_focus}
             </Text>
           </View>
-        )}
-        {user.location && (
+        ) : null}
+        {user.location ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="location-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {user.location}
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Research Interests & Looking For */}

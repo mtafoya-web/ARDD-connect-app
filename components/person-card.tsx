@@ -31,16 +31,16 @@ export function PersonCard({ user }: PersonCardProps) {
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.textPrimary }}>
             {user.full_name}
           </Text>
-          {user.institution && (
+          {user.institution ? (
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
               {user.institution}
             </Text>
-          )}
+          ) : null}
         </View>
         <Ionicons name="open-outline" size={16} color={Colors.textTertiary} />
       </View>
 
-      {user.bio && (
+      {user.bio ? (
         <Text
           style={{
             fontFamily: Fonts.regular,
@@ -52,33 +52,33 @@ export function PersonCard({ user }: PersonCardProps) {
         >
           {user.bio}
         </Text>
-      )}
+      ) : null}
 
       <View style={{ gap: 4 }}>
-        {user.institution && (
+        {user.institution ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="business-outline" size={13} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
               {user.institution}
             </Text>
           </View>
-        )}
-        {user.research_focus && (
+        ) : null}
+        {user.research_focus ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="flask-outline" size={13} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
               {user.research_focus}
             </Text>
           </View>
-        )}
-        {user.location && (
+        ) : null}
+        {user.location ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="location-outline" size={13} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
               {user.location}
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       <Pressable

@@ -33,11 +33,11 @@ export function EventCard({ event }: EventCardProps) {
           justifyContent: 'center',
         }}
       >
-        {event.event_type && (
+        {event.event_type ? (
           <View style={{ position: 'absolute', top: 10, left: 10 }}>
             <Badge label={event.event_type} variant="primary" size="sm" />
           </View>
-        )}
+        ) : null}
         <Ionicons name="calendar-outline" size={32} color={Colors.textTertiary} />
       </View>
 
@@ -55,7 +55,7 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </Text>
 
-        {event.description && (
+        {event.description ? (
           <Text
             style={{
               fontFamily: Fonts.regular,
@@ -67,25 +67,25 @@ export function EventCard({ event }: EventCardProps) {
           >
             {event.description}
           </Text>
-        )}
+        ) : null}
 
         <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 8, gap: 4, marginTop: 4 }}>
-          {event.location && (
+          {event.location ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Ionicons name="location-outline" size={13} color={Colors.textSecondary} />
               <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
                 {event.location}
               </Text>
             </View>
-          )}
-          {event.date && (
+          ) : null}
+          {event.date ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Ionicons name="time-outline" size={13} color={Colors.textSecondary} />
               <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
                 {event.date}
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
 
         <Pressable

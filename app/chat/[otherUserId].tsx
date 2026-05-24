@@ -252,7 +252,7 @@ export default function ChatScreen() {
                     {msg.content}
                   </Text>
                 </View>
-                {msg.created_at && (
+                {msg.created_at ? (
                   <Text
                     style={{
                       fontFamily: Fonts.regular,
@@ -265,7 +265,7 @@ export default function ChatScreen() {
                   >
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
-                )}
+                ) : null}
               </View>
             );
           })}

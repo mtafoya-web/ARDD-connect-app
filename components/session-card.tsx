@@ -30,33 +30,33 @@ export function SessionCard({ session, showMatchScore, showReasons, onStar }: Se
     >
       {/* Meta row */}
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-        {session.date && (
+        {session.date ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Ionicons name="calendar-outline" size={13} color={Colors.textSecondary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 11, color: Colors.textSecondary, textTransform: 'uppercase' }}>
               {session.date}
             </Text>
           </View>
-        )}
-        {session.start_time && (
+        ) : null}
+        {session.start_time ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Ionicons name="time-outline" size={13} color={Colors.textSecondary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 11, color: Colors.textSecondary }}>
               {session.start_time}{session.end_time ? `–${session.end_time}` : ''}
             </Text>
           </View>
-        )}
-        {session.hall && (
+        ) : null}
+        {session.hall ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Ionicons name="location-outline" size={13} color={Colors.textSecondary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 11, color: Colors.textSecondary, textTransform: 'uppercase' }}>
               {session.hall}
             </Text>
           </View>
-        )}
-        {session.session_type && (
+        ) : null}
+        {session.session_type ? (
           <Badge label={session.session_type} variant="primary" size="sm" />
-        )}
+        ) : null}
         {showMatchScore && session.match_score != null && (
           <View style={{ marginLeft: 'auto' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
@@ -118,14 +118,14 @@ export function SessionCard({ session, showMatchScore, showReasons, onStar }: Se
       )}
 
       {/* Speakers */}
-      {session.speakers && session.speakers.length > 0 && (
+      {Array.isArray(session.speakers) && session.speakers.length > 0 ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Ionicons name="people-outline" size={13} color={Colors.textTertiary} />
           <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textTertiary }} numberOfLines={1}>
             {session.speakers.join(', ')}
           </Text>
         </View>
-      )}
+      ) : null}
 
       {/* Footer */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4 }}>

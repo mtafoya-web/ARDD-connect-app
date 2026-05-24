@@ -95,7 +95,7 @@ export function InputField({
           </Pressable>
         )}
       </View>
-      {error && (
+      {error ? (
         <Text
           style={{
             fontSize: 12,
@@ -105,7 +105,7 @@ export function InputField({
         >
           {error}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }

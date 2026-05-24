@@ -96,11 +96,11 @@ export default function EditProfileScreen() {
           <InputField label="Looking for" value={lookingFor} onChangeText={setLookingFor} multiline numberOfLines={3} autoCapitalize="sentences" />
         </View>
 
-        {error && (
+        {error ? (
           <Text selectable style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.error, textAlign: 'center' }}>
             {error}
           </Text>
-        )}
+        ) : null}
 
         <Button title="Save changes" onPress={handleSave} loading={saving} fullWidth />
       </ScrollView>

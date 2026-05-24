@@ -172,17 +172,17 @@ export default function UserProfileScreen() {
           </Pressable>
         </View>
 
-        {profile.bio && (
+        {profile.bio ? (
           <Text selectable style={{ fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, lineHeight: 20 }}>
             {profile.bio}
           </Text>
-        )}
+        ) : null}
 
         {/* Tags */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {profile.role && <Badge label={profile.role} variant="outline" />}
-          {profile.research_focus && <Badge label={profile.research_focus} variant="outline" />}
-          {profile.location && <Badge label={profile.location} variant="primary" />}
+          {profile.role ? <Badge label={profile.role} variant="outline" /> : null}
+          {profile.research_focus ? <Badge label={profile.research_focus} variant="outline" /> : null}
+          {profile.location ? <Badge label={profile.location} variant="primary" /> : null}
         </View>
       </View>
 
@@ -201,30 +201,30 @@ export default function UserProfileScreen() {
         <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
           Profile details
         </Text>
-        {profile.institution && (
+        {profile.institution ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="business-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {profile.institution}
             </Text>
           </View>
-        )}
-        {profile.research_focus && (
+        ) : null}
+        {profile.research_focus ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="flask-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {profile.research_focus}
             </Text>
           </View>
-        )}
-        {profile.location && (
+        ) : null}
+        {profile.location ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="location-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
               {profile.location}
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Research Interests & Looking For */}

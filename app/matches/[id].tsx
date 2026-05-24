@@ -108,22 +108,22 @@ export default function MatchDetailScreen() {
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
             {person.full_name}
           </Text>
-          {person.institution && (
+          {person.institution ? (
             <Text style={{ fontFamily: Fonts.regular, fontSize: 11, color: Colors.textSecondary }}>
               {person.institution}
             </Text>
-          )}
+          ) : null}
         </View>
       </View>
-      {person.role && (
+      {person.role ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Ionicons name="business-outline" size={12} color={Colors.textTertiary} />
           <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
             {person.role}
           </Text>
         </View>
-      )}
-      {person.research_focus && (
+      ) : null}
+      {person.research_focus ? (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             RESEARCH FOCUS
@@ -136,7 +136,7 @@ export default function MatchDetailScreen() {
             </View>
           </View>
         </View>
-      )}
+      ) : null}
       {Array.isArray(person.conference_goals) && person.conference_goals.length > 0 && (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>

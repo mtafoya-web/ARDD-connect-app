@@ -158,7 +158,7 @@ export default function RegisterScreen() {
             />
           </View>
 
-          {error && (
+          {error ? (
             <Text
               selectable
               style={{
@@ -170,7 +170,7 @@ export default function RegisterScreen() {
             >
               {error}
             </Text>
-          )}
+          ) : null}
 
           <Button
             title="Create account"

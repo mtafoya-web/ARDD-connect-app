@@ -203,7 +203,7 @@ export default function MessagesScreen() {
                     </Text>
                   ) : null}
                 </View>
-                {conv.unread_count && conv.unread_count > 0 ? (
+                {conv.unread_count != null && conv.unread_count > 0 ? (
                   <View
                     style={{
                       backgroundColor: Colors.primary,
