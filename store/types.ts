@@ -61,19 +61,50 @@ export interface Session {
   is_starred?: boolean;
 }
 
+export interface MatchCandidate {
+  id: number;
+  username: string;
+  full_name: string;
+  affiliation?: string;
+  bio?: string;
+  role?: string;
+  researchFocus?: string[];
+  businessGoals?: string[];
+  availability?: string[];
+  introTagline?: string;
+}
+
+export interface MatchReasons {
+  bullets?: string[];
+  conversationStarter?: string;
+}
+
 export interface Match {
   id: number;
+  matchId?: number;
+  userId?: number;
+  candidateId?: number;
+  candidate?: MatchCandidate;
   user: User;
   score: number;
+  scenario?: string;
   match_type?: string;
   quote?: string;
-  reasons?: string[];
+  reasons?: string[] | MatchReasons;
   conversation_starter?: string;
 }
 
-export interface Conversation {
+export interface ConversationUser {
   id: number;
-  participant: User;
+  username: string;
+  full_name: string;
+  profile_photo_url?: string;
+}
+
+export interface Conversation {
+  id?: number;
+  user: ConversationUser;
+  participant?: User;
   last_message?: string;
   last_message_at?: string;
   unread_count?: number;
@@ -82,6 +113,7 @@ export interface Conversation {
 export interface Message {
   id: number;
   sender_id: number;
+  receiver_id?: number;
   content: string;
   created_at: string;
 }

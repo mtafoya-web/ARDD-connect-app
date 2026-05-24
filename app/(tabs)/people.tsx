@@ -29,13 +29,37 @@ export default function PeopleScreen() {
     try {
       setError(null);
       if (activeTab === 0) {
-        const data = await apiClient.get<User[]>('/users/');
-        setUsers(data);
+        const data = await apiClient.get<any>('/users/');
+        const safeUsers = Array.isArray(data) ? data : [];
+        setUsers(safeUsers);
       } else if (isLoggedIn) {
-        const data = await apiClient.get<Match[]>('/users/matches');
-        setMatches(data);
+        // /matches/me returns { me: {...}, matches: [...] }
+        const data = await apiClient.get<any>('/matches/me');
+        const safeMatches = Array.isArray(data?.matches) ? data.matches : [];
+        // Map API response shape to our Match type
+        setMatches(safeMatches.map((m: any) => ({
+          id: m.matchId ?? m.id,
+          user: m.candidate ? {
+            id: m.candidate.id ?? m.candidateId,
+            username: m.candidate.username ?? '',
+            email: '',
+            full_name: m.candidate.full_name ?? '',
+            institution: m.candidate.affiliation,
+            bio: m.candidate.bio,
+            role: m.candidate.role,
+            research_focus: Array.isArray(m.candidate.researchFocus) ? m.candidate.researchFocus.join(', ') : m.candidate.researchFocus,
+            conference_goals: m.candidate.businessGoals,
+            availability: m.candidate.availability,
+          } : { id: m.candidateId ?? 0, username: '', email: '', full_name: 'Unknown' },
+          score: m.score ?? 0,
+          match_type: m.scenario,
+          quote: m.candidate?.introTagline,
+          reasons: Array.isArray(m.reasons?.bullets) ? m.reasons.bullets : (Array.isArray(m.reasons) ? m.reasons : []),
+          conversation_starter: m.reasons?.conversationStarter ?? m.conversation_starter,
+        })));
       }
     } catch (e: unknown) {
+      console.error('[People] fetch error:', e instanceof Error ? e.message : e);
       setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
       setLoading(false);
@@ -53,12 +77,15 @@ export default function PeopleScreen() {
     fetchData();
   };
 
-  const filteredUsers = users.filter((u) => {
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeMatches = Array.isArray(matches) ? matches : [];
+
+  const filteredUsers = safeUsers.filter((u) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
-      u.full_name.toLowerCase().includes(q) ||
-      u.username.toLowerCase().includes(q) ||
+      u.full_name?.toLowerCase().includes(q) ||
+      u.username?.toLowerCase().includes(q) ||
       (u.institution?.toLowerCase().includes(q) ?? false)
     );
   });
@@ -91,7 +118,7 @@ export default function PeopleScreen() {
       return <AuthPrompt message="Sign in to see your top matches" />;
     }
 
-    if (matches.length === 0) {
+    if (safeMatches.length === 0) {
       return (
         <View style={{ alignItems: 'center', padding: 40, gap: 12 }}>
           <Ionicons name="sparkles-outline" size={48} color={Colors.textTertiary} />
@@ -111,7 +138,7 @@ export default function PeopleScreen() {
             Ranked using your ARDD profile — role, research focus, business goals, availability, and stated session interests.
           </Text>
         </View>
-        {matches.map((match) => (
+        {safeMatches.map((match) => (
           <MatchCard key={match.id} match={match} />
         ))}
       </View>
@@ -148,7 +175,7 @@ export default function PeopleScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
           <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
           <Text style={{ fontFamily: Fonts.medium, fontSize: 12, color: Colors.textSecondary }}>
-            {activeTab === 0 ? `${filteredUsers.length} shown` : `${matches.length} matches`}
+            {activeTab === 0 ? `${filteredUsers.length} shown` : `${safeMatches.length} matches`}
           </Text>
         </View>
       </View>

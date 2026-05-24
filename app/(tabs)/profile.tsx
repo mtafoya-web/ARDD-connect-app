@@ -25,9 +25,10 @@ export default function ProfileScreen() {
     if (!isLoggedIn || !user) return;
     setLoading(true);
     try {
-      const data = await apiClient.get<Post[]>('/posts/global');
+      const data = await apiClient.get<any>('/posts/global');
+      const safePosts = Array.isArray(data) ? data : [];
       // Filter to only my posts
-      setPosts(data.filter((p) => p.author.id === user.id));
+      setPosts(safePosts.filter((p: any) => p.author?.id === user.id));
     } catch {
       setPosts([]);
     } finally {

@@ -24,18 +24,11 @@ export default function MessagesScreen() {
       return;
     }
     try {
-      const data = await apiClient.get<any>('/messages');
-      console.log('MESSAGES RESPONSE:', data);
-      const normalizedMessages = Array.isArray(data)
-        ? data
-        : Array.isArray(data.messages)
-          ? data.messages
-          : Array.isArray(data.items)
-            ? data.items
-            : [];
-      setConversations(normalizedMessages);
+      const data = await apiClient.get<any>('/messages/conversations');
+      const safeConversations = Array.isArray(data) ? data : [];
+      setConversations(safeConversations);
     } catch (err) {
-      console.error('MESSAGES FETCH ERROR:', err);
+      console.error('[Messages] fetch error:', err instanceof Error ? err.message : err);
       setConversations([]);
     } finally {
       setLoading(false);
@@ -53,6 +46,8 @@ export default function MessagesScreen() {
       </View>
     );
   }
+
+  const safeConversations = Array.isArray(conversations) ? conversations : [];
 
   return (
     <ScrollView
@@ -97,7 +92,7 @@ export default function MessagesScreen() {
       {/* Content */}
       {loading ? (
         <LoadingState message="Loading conversations..." />
-      ) : conversations.length === 0 ? (
+      ) : safeConversations.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: 80, gap: 16 }}>
           <View
             style={{
@@ -139,53 +134,61 @@ export default function MessagesScreen() {
         </View>
       ) : (
         <View style={{ gap: 2 }}>
-          {(() => { console.log('messages value:', conversations); console.log('messages is array:', Array.isArray(conversations)); return null; })()}
-          {Array.isArray(conversations) && conversations.map((conv) => (
-            <Pressable
-              key={conv.id}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                padding: 12,
-                backgroundColor: pressed ? Colors.inputBg : Colors.card,
-                borderRadius: 10,
-                borderCurve: 'continuous',
-              })}
-            >
-              <Avatar name={conv.participant.full_name} size={44} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
-                  {conv.participant.full_name}
-                </Text>
-                {conv.last_message && (
-                  <Text
-                    style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}
-                    numberOfLines={1}
-                  >
-                    {conv.last_message}
+          {safeConversations.map((conv, index) => {
+            const displayName = conv.user?.full_name || conv.user?.username || conv.participant?.full_name || 'Unknown';
+            const uniqueKey = conv.id ?? conv.user?.id ?? index;
+            return (
+              <Pressable
+                key={uniqueKey}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 12,
+                  backgroundColor: pressed ? Colors.inputBg : Colors.card,
+                  borderRadius: 10,
+                  borderCurve: 'continuous',
+                })}
+              >
+                <Avatar name={displayName} size={44} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
+                    {displayName}
                   </Text>
-                )}
-              </View>
-              {conv.unread_count && conv.unread_count > 0 && (
-                <View
-                  style={{
-                    backgroundColor: Colors.primary,
-                    borderRadius: 10,
-                    minWidth: 20,
-                    height: 20,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingHorizontal: 6,
-                  }}
-                >
-                  <Text style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: Colors.white, fontVariant: ['tabular-nums'] }}>
-                    {conv.unread_count}
-                  </Text>
+                  {conv.last_message && (
+                    <Text
+                      style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}
+                      numberOfLines={1}
+                    >
+                      {conv.last_message}
+                    </Text>
+                  )}
+                  {conv.last_message_at && (
+                    <Text style={{ fontFamily: Fonts.regular, fontSize: 11, color: Colors.textTertiary }}>
+                      {new Date(conv.last_message_at).toLocaleDateString()}
+                    </Text>
+                  )}
                 </View>
-              )}
-            </Pressable>
-          ))}
+                {conv.unread_count && conv.unread_count > 0 && (
+                  <View
+                    style={{
+                      backgroundColor: Colors.primary,
+                      borderRadius: 10,
+                      minWidth: 20,
+                      height: 20,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingHorizontal: 6,
+                    }}
+                  >
+                    <Text style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: Colors.white, fontVariant: ['tabular-nums'] }}>
+                      {conv.unread_count}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
       )}
     </ScrollView>

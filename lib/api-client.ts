@@ -17,7 +17,8 @@ class ApiClient {
   }
 
   async get<T>(path: string): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
+    const url = `${this.baseUrl}${path}`;
+    const res = await fetch(url, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -26,12 +27,15 @@ class ApiClient {
       throw new Error('Unauthorized');
     }
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      const body = await res.text().catch(() => '');
+      console.error(`[ApiClient] GET ${url} failed:`, res.status, body);
+      throw new Error(`API Error ${res.status}: ${body || res.statusText}`);
     }
     return res.json();
   }
 
   async post<T>(path: string, body?: unknown, isFormEncoded = false): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
     let headers: HeadersInit;
     let bodyStr: string | undefined;
 
@@ -43,7 +47,7 @@ class ApiClient {
       bodyStr = body ? JSON.stringify(body) : undefined;
     }
 
-    const res = await fetch(`${this.baseUrl}${path}`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers,
       body: bodyStr,
@@ -54,13 +58,15 @@ class ApiClient {
     }
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
-      throw new Error(errBody || `API Error: ${res.status}`);
+      console.error(`[ApiClient] POST ${url} failed:`, res.status, errBody);
+      throw new Error(errBody || `API Error ${res.status}: ${res.statusText}`);
     }
     return res.json();
   }
 
   async delete<T>(path: string): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
+    const url = `${this.baseUrl}${path}`;
+    const res = await fetch(url, {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
@@ -69,7 +75,9 @@ class ApiClient {
       throw new Error('Unauthorized');
     }
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      const body = await res.text().catch(() => '');
+      console.error(`[ApiClient] DELETE ${url} failed:`, res.status, body);
+      throw new Error(`API Error ${res.status}: ${body || res.statusText}`);
     }
     return res.json();
   }

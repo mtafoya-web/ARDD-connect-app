@@ -26,8 +26,8 @@ export default function FeedScreen() {
   const fetchPosts = useCallback(async () => {
     try {
       setError(null);
-      const data = await apiClient.get<Post[]>('/posts/global');
-      setPosts(data);
+      const data = await apiClient.get<any>('/posts/global');
+      setPosts(Array.isArray(data) ? data : []);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load posts');
     } finally {

@@ -34,8 +34,13 @@ export default function MatchDetailScreen() {
 
   useEffect(() => {
     const fetchMatch = async () => {
+      if (!id || id === 'undefined') {
+        setError('Invalid match ID');
+        setLoading(false);
+        return;
+      }
       try {
-        const data = await apiClient.get<MatchDetail>(`/users/matches/${id}`);
+        const data = await apiClient.get<MatchDetail>(`/matches/me/${id}`);
         setMatch(data);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to load match');
@@ -113,7 +118,7 @@ export default function MatchDetailScreen() {
           </View>
         </View>
       )}
-      {person.conference_goals && person.conference_goals.length > 0 && (
+      {Array.isArray(person.conference_goals) && person.conference_goals.length > 0 && (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             CONFERENCE GOALS
@@ -129,7 +134,7 @@ export default function MatchDetailScreen() {
           </View>
         </View>
       )}
-      {person.availability && person.availability.length > 0 && (
+      {Array.isArray(person.availability) && person.availability.length > 0 && (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             AVAILABILITY
@@ -183,7 +188,7 @@ export default function MatchDetailScreen() {
       </View>
 
       {/* Why this match */}
-      {match.reasons && match.reasons.length > 0 && (
+      {match.reasons && (Array.isArray(match.reasons) ? match.reasons : []).length > 0 && (
         <View
           style={{
             backgroundColor: Colors.card,
@@ -198,7 +203,7 @@ export default function MatchDetailScreen() {
           <Text style={{ fontFamily: Fonts.bold, fontSize: 16, color: Colors.textPrimary }}>
             Why this match
           </Text>
-          {match.reasons.map((reason, i) => (
+          {(Array.isArray(match.reasons) ? match.reasons : []).map((reason, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
               <Text style={{ color: Colors.primary, fontSize: 16, lineHeight: 20 }}>{'•'}</Text>
               <Text style={{ fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, flex: 1, lineHeight: 20 }}>

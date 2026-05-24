@@ -68,9 +68,9 @@ export function MatchCard({ match }: MatchCardProps) {
       )}
 
       {/* Reasons */}
-      {match.reasons && match.reasons.length > 0 && (
+      {match.reasons && (Array.isArray(match.reasons) ? match.reasons : []).length > 0 && (
         <View style={{ gap: 4 }}>
-          {match.reasons.map((reason, i) => (
+          {(Array.isArray(match.reasons) ? match.reasons : []).map((reason, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
               <Text style={{ color: Colors.primary, fontSize: 14 }}>{'•'}</Text>
               <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary, flex: 1 }}>

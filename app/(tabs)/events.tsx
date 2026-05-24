@@ -28,14 +28,14 @@ export default function EventsScreen() {
     try {
       setError(null);
       if (activeTab === 0) {
-        const data = await apiClient.get<Event[]>('/events/?status=current');
-        setEvents(data);
+        const data = await apiClient.get<any>('/events/?status=current');
+        setEvents(Array.isArray(data) ? data : []);
       } else if (activeTab === 1 && isLoggedIn) {
-        const data = await apiClient.get<Session[]>('/sessions/recommended');
-        setRecommended(data);
+        const data = await apiClient.get<any>('/sessions/recommended');
+        setRecommended(Array.isArray(data) ? data : []);
       } else if (activeTab === 2 && isLoggedIn) {
-        const data = await apiClient.get<Session[]>('/sessions/my');
-        setMySchedule(data);
+        const data = await apiClient.get<any>('/sessions/my');
+        setMySchedule(Array.isArray(data) ? data : []);
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load');
