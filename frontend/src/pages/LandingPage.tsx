@@ -95,18 +95,7 @@ export const LandingPage = () => {
               Personalized program recommendations, scored attendee matches with deterministic explanations, and an in-app Claw Bot — all reusing your ARDD profile.
             </p>
 
-            <section className="mt-6 rounded-md border border-border-secondary bg-surface p-4">
-              <h3 className="text-lg font-bold text-foreground-primary">What is ARDD?</h3>
-              <p className="mt-2 text-sm text-foreground-secondary">
-                ARDD (Aging Research & Drug Discovery) Connect is a network intelligence platform that helps researchers, clinicians, and industry partners discover relevant collaborators, curate event programs, and turn conversations into actionable research connections.
-              </p>
-              <h4 className="mt-3 text-sm font-bold text-foreground-primary">Goals</h4>
-              <ul className="mt-2 list-inside list-disc text-sm text-foreground-secondary">
-                <li>Surface high-quality matches between attendees based on research focus and collaboration needs.</li>
-                <li>Provide personalized program recommendations to maximize conference value.</li>
-                <li>Make it easy to start and sustain research conversations before, during, and after ARDD.</li>
-              </ul>
-            </section>
+            
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 to="/login"
