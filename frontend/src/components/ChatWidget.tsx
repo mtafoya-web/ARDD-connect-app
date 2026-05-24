@@ -6,6 +6,7 @@ import { Avatar } from './Avatar';
 import { Send, MessageSquare, X, Minimize2, Maximize2, ChevronDown, Search } from 'lucide-react';
 import { getConversations, getMessages } from '../services/messagesService';
 import { listUsers } from '../services/usersService';
+import { normalizeIncomingMessage } from '../lib/normalize';
 
 const formatTime = (dateStr: string) => {
   if (!dateStr) return '';
@@ -28,6 +29,8 @@ export const ChatWidget = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -88,13 +91,20 @@ export const ChatWidget = () => {
       newSocket.onerror = (error) => console.error('WebSocket (Widget) error:', error);
 
       newSocket.onmessage = (event) => {
-        const incomingMessage = JSON.parse(event.data);
+        let incomingMessage;
+        try {
+          incomingMessage = normalizeIncomingMessage(JSON.parse(event.data));
+        } catch (err) {
+          console.error('Failed to parse WS payload:', err);
+          return;
+        }
+        if (!incomingMessage) return;
+
         const currentConv = selectedConversationRef.current;
-        
-        if (currentConv && 
-            (incomingMessage.sender_id === currentConv.user.id || 
+        if (currentConv &&
+            (incomingMessage.sender_id === currentConv.user.id ||
              incomingMessage.receiver_id === currentConv.user.id)) {
-          setMessages((prev) => [...prev, incomingMessage]);
+          setMessages((prev) => [...prev, incomingMessage!]);
         }
         fetchConversations();
       };
@@ -106,7 +116,12 @@ export const ChatWidget = () => {
 
   useEffect(() => {
     if (selectedConversation) {
+      setMessages([]);
+      setMessagesError('');
       fetchMessages(selectedConversation.user.id!);
+    } else {
+      setMessages([]);
+      setMessagesError('');
     }
   }, [selectedConversation]);
 
@@ -124,11 +139,16 @@ export const ChatWidget = () => {
   };
 
   const fetchMessages = async (otherUserId: number) => {
+    setMessagesLoading(true);
+    setMessagesError('');
     try {
       const items = await getMessages(otherUserId);
       setMessages(items);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch messages:', err);
+      setMessagesError(err?.response?.data?.detail || 'Could not load this conversation.');
+    } finally {
+      setMessagesLoading(false);
     }
   };
 
@@ -194,6 +214,17 @@ export const ChatWidget = () => {
                 <>
                   {/* Message List */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-canvas">
+                    {messagesError && (
+                      <div className="rounded-lg border border-status-error/25 bg-status-error/10 px-3 py-2 text-xs font-medium text-status-error">
+                        {messagesError}
+                      </div>
+                    )}
+                    {messagesLoading && messages.length === 0 && !messagesError && (
+                      <div className="text-center text-xs text-foreground-tertiary">Loading messages…</div>
+                    )}
+                    {!messagesLoading && !messagesError && messages.length === 0 && (
+                      <div className="text-center text-xs text-foreground-tertiary">No messages yet.</div>
+                    )}
                     {messages.map((msg, index) => {
                       const isMe = msg.sender_id === user?.id;
                       return (

@@ -8,6 +8,7 @@ import { Send, MessageSquare, UserPlus, Search } from 'lucide-react';
 import { getConversations, getMessages } from '../services/messagesService';
 import { getUser, listUsers } from '../services/usersService';
 import { toNumericId } from '../lib/ids';
+import { normalizeIncomingMessage } from '../lib/normalize';
 
 const formatTime = (dateStr: string) => {
   if (!dateStr) return '';
@@ -33,6 +34,8 @@ export const MessagesPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -102,16 +105,25 @@ export const MessagesPage = () => {
       newSocket.onerror = (error) => console.error('WebSocket error:', error);
 
       newSocket.onmessage = (event) => {
-        const incomingMessage = JSON.parse(event.data);
-        const currentConv = selectedConversationRef.current;
-        
-        // If the message belongs to the current open conversation, add it to the list
-        if (currentConv && 
-            (incomingMessage.sender_id === currentConv.user.id || 
-             incomingMessage.receiver_id === currentConv.user.id)) {
-          setMessages((prev) => [...prev, incomingMessage]);
+        // The server occasionally emits non-message frames (heartbeats,
+        // future control messages). Normalize defensively and ignore
+        // anything that doesn't match the Message shape.
+        let incomingMessage;
+        try {
+          incomingMessage = normalizeIncomingMessage(JSON.parse(event.data));
+        } catch (err) {
+          console.error('Failed to parse WS payload:', err);
+          return;
         }
-        
+        if (!incomingMessage) return;
+
+        const currentConv = selectedConversationRef.current;
+        if (currentConv &&
+            (incomingMessage.sender_id === currentConv.user.id ||
+             incomingMessage.receiver_id === currentConv.user.id)) {
+          setMessages((prev) => [...prev, incomingMessage!]);
+        }
+
         // Update conversations list (refresh to show last message)
         fetchConversations();
       };
@@ -126,7 +138,14 @@ export const MessagesPage = () => {
 
   useEffect(() => {
     if (selectedConversation) {
+      // Clear stale messages immediately so we never show the previous
+      // conversation's thread while the new fetch is in flight.
+      setMessages([]);
+      setMessagesError('');
       fetchMessages(selectedConversation.user.id!);
+    } else {
+      setMessages([]);
+      setMessagesError('');
     }
   }, [selectedConversation]);
 
@@ -149,11 +168,16 @@ export const MessagesPage = () => {
   };
 
   const fetchMessages = async (otherUserId: number) => {
+    setMessagesLoading(true);
+    setMessagesError('');
     try {
       const items = await getMessages(otherUserId);
       setMessages(items);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch messages:', err);
+      setMessagesError(err?.response?.data?.detail || 'Could not load this conversation.');
+    } finally {
+      setMessagesLoading(false);
     }
   };
 
@@ -304,6 +328,19 @@ export const MessagesPage = () => {
             </header>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messagesError && (
+                <div className="rounded-lg border border-status-error/25 bg-status-error/10 px-4 py-3 text-sm font-medium text-status-error">
+                  {messagesError}
+                </div>
+              )}
+              {messagesLoading && messages.length === 0 && !messagesError && (
+                <div className="text-center text-sm text-foreground-tertiary">Loading messages…</div>
+              )}
+              {!messagesLoading && !messagesError && messages.length === 0 && (
+                <div className="text-center text-sm text-foreground-tertiary">
+                  No messages yet. Say hello.
+                </div>
+              )}
               {messages.map((msg, index) => {
                 const isMe = msg.sender_id === user?.id;
                 return (

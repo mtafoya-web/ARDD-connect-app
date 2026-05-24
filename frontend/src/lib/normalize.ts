@@ -143,23 +143,33 @@ export const normalizeConversations = (data: unknown): Conversation[] =>
       last_message_at: c.last_message_at ?? '',
     }));
 
+/**
+ * Single-message normalizer for live WebSocket payloads. Returns null
+ * for malformed payloads so callers can ignore them without crashing.
+ */
+export const normalizeIncomingMessage = (value: unknown): Message | null => {
+  if (!value || typeof value !== 'object') return null;
+  const m = value as any;
+  if (
+    typeof m.id !== 'number' ||
+    typeof m.sender_id !== 'number' ||
+    typeof m.receiver_id !== 'number'
+  ) {
+    return null;
+  }
+  return {
+    id: m.id,
+    sender_id: m.sender_id,
+    receiver_id: m.receiver_id,
+    content: String(m.content ?? ''),
+    created_at: m.created_at ?? '',
+  };
+};
+
 export const normalizeMessages = (data: unknown): Message[] =>
-  normalizeArray<any>(data)
-    .filter(
-      (m) =>
-        m &&
-        typeof m === 'object' &&
-        typeof m.id === 'number' &&
-        typeof m.sender_id === 'number' &&
-        typeof m.receiver_id === 'number',
-    )
-    .map((m) => ({
-      id: m.id,
-      sender_id: m.sender_id,
-      receiver_id: m.receiver_id,
-      content: String(m.content ?? ''),
-      created_at: m.created_at ?? '',
-    }));
+  normalizeArray<unknown>(data)
+    .map(normalizeIncomingMessage)
+    .filter((m): m is Message => m !== null);
 
 // ---------------------------------------------------------------------------
 // Sessions
