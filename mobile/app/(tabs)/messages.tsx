@@ -10,7 +10,7 @@ import { apiClient } from '@/lib/api-client';
 import { Avatar } from '@/components/avatar';
 import { AuthPrompt } from '@/components/auth-prompt';
 import { LoadingState } from '@/components/loading-state';
-import type { Conversation } from '@/store/types';
+import type { Conversation, User } from '@/store/types';
 
 function formatTimestamp(dateStr: string): string {
   try {
@@ -35,9 +35,11 @@ function formatTimestamp(dateStr: string): string {
 export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { isLoggedIn } = useAuthStore();
+  const { isLoggedIn, user } = useAuthStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchConversations = useCallback(async () => {
@@ -60,6 +62,34 @@ export default function MessagesScreen() {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length < 2) {
+      setSearching(false);
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setSearching(true);
+      const data = await apiClient.get<User[]>(`/users/?q=${encodeURIComponent(query.trim())}`);
+      const safeUsers = Array.isArray(data) ? data : [];
+      setSearchResults(safeUsers.filter((item) => item.id !== user?.id));
+    } catch (err) {
+      console.error('[Messages] search error:', err instanceof Error ? err.message : err);
+      setSearchResults([]);
+    }
+  }, [user?.id]);
+
+  const openChat = (target: Pick<User, 'id' | 'full_name' | 'username'>) => {
+    if (!target.id || !Number.isFinite(Number(target.id))) return;
+    const displayName = target.full_name || target.username || 'Chat';
+    router.push({
+      pathname: '/chat/[otherUserId]',
+      params: { otherUserId: String(target.id), name: displayName },
+    });
+  };
 
   if (!isLoggedIn) {
     return (
@@ -99,7 +129,7 @@ export default function MessagesScreen() {
         <Ionicons name="search" size={18} color={Colors.textTertiary} />
         <TextInput
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearch}
           placeholder="Search people to message..."
           placeholderTextColor={Colors.textTertiary}
           style={{
@@ -114,6 +144,47 @@ export default function MessagesScreen() {
       {/* Content */}
       {loading ? (
         <LoadingState message="Loading conversations..." />
+      ) : searching ? (
+        <View style={{ gap: 2 }}>
+          {searchResults.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingVertical: 48, gap: 8 }}>
+              <Ionicons name="search-outline" size={36} color={Colors.textTertiary} />
+              <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textSecondary }}>
+                No people found
+              </Text>
+            </View>
+          ) : (
+            searchResults.map((target) => {
+              const displayName = target.full_name || target.username || 'Unknown';
+              return (
+                <Pressable
+                  key={target.id}
+                  onPress={() => openChat(target)}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: 12,
+                    backgroundColor: pressed ? Colors.inputBg : Colors.card,
+                    borderRadius: 10,
+                    borderCurve: 'continuous',
+                  })}
+                >
+                  <Avatar name={displayName} size={44} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
+                      {displayName}
+                    </Text>
+                    <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
+                      @{target.username}
+                    </Text>
+                  </View>
+                  <Ionicons name="chatbubble-outline" size={16} color={Colors.textTertiary} />
+                </Pressable>
+              );
+            })
+          )}
+        </View>
       ) : safeConversations.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: 80, gap: 16 }}>
           <View
@@ -135,7 +206,7 @@ export default function MessagesScreen() {
             Search for someone above to start chatting
           </Text>
           <Pressable
-            onPress={() => {}}
+            onPress={() => router.push('/people' as never)}
             style={{
               backgroundColor: Colors.primary,
               borderRadius: 10,
@@ -164,9 +235,10 @@ export default function MessagesScreen() {
 
             const handlePress = () => {
               if (!isValidUserId) return;
-              router.push({
-                pathname: '/chat/[otherUserId]',
-                params: { otherUserId: String(userId), name: displayName },
+              openChat({
+                id: Number(userId),
+                full_name: conv.user?.full_name || displayName,
+                username: conv.user?.username || '',
               });
             };
 

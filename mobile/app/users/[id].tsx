@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { Alert, View, Text, ScrollView, Pressable } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,8 +17,10 @@ export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isLoggedIn } = useAuthStore();
+  const { isLoggedIn, user } = useAuthStore();
   const [profile, setProfile] = useState<User | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,17 +44,67 @@ export default function UserProfileScreen() {
     fetchProfile();
   }, [id]);
 
+  useEffect(() => {
+    const fetchFollowStatus = async () => {
+      const numericId = Number(id);
+      if (!isLoggedIn || !Number.isFinite(numericId)) return;
+      try {
+        const data = await apiClient.get<{ following: boolean }>(`/follows/${numericId}`);
+        setIsFollowing(Boolean(data.following));
+      } catch {
+        setIsFollowing(false);
+      }
+    };
+    fetchFollowStatus();
+  }, [id, isLoggedIn]);
+
   const handleFollow = async () => {
-    if (!isLoggedIn || !profile) return;
+    if (!profile) return;
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
     const numericId = Number(id);
     if (!Number.isFinite(numericId)) return;
     try {
-      // Backend route is POST /follows/{user_id}, NOT /users/{id}/follow.
-      // DELETE /follows/{user_id} would unfollow (not wired here yet).
-      await apiClient.post(`/follows/${numericId}`);
-    } catch {
-      // Silent
+      setFollowLoading(true);
+      if (isFollowing) {
+        await apiClient.delete(`/follows/${numericId}`);
+        setIsFollowing(false);
+        setProfile((current) => current ? {
+          ...current,
+          followers_count: Math.max(0, (current.followers_count || 0) - 1),
+        } : current);
+      } else {
+        await apiClient.post(`/follows/${numericId}`);
+        setIsFollowing(true);
+        setProfile((current) => current ? {
+          ...current,
+          followers_count: (current.followers_count || 0) + 1,
+        } : current);
+      }
+    } catch (e: unknown) {
+      Alert.alert(
+        'Follow failed',
+        e instanceof Error ? e.message : 'Failed to update follow status',
+      );
+    } finally {
+      setFollowLoading(false);
     }
+  };
+
+  const handleMessage = () => {
+    if (!isLoggedIn || !profile) {
+      router.push('/login');
+      return;
+    }
+    router.push({
+      pathname: '/chat/[otherUserId]',
+      params: {
+        otherUserId: String(profile.id),
+        name: profile.full_name || profile.username || 'Chat',
+      },
+    });
   };
 
   if (loading) {
@@ -70,6 +122,8 @@ export default function UserProfileScreen() {
       </View>
     );
   }
+
+  const isSelf = user?.id === profile.id;
 
   return (
     <ScrollView
@@ -133,27 +187,37 @@ export default function UserProfileScreen() {
 
         {/* Actions */}
         <View style={{ flexDirection: 'row', gap: 10 }}>
+          {!isSelf ? (
+            <Pressable
+              onPress={handleFollow}
+              disabled={followLoading}
+              style={{
+                flex: 1,
+                backgroundColor: isFollowing ? Colors.card : Colors.primary,
+                borderWidth: isFollowing ? 1 : 0,
+                borderColor: Colors.border,
+                borderRadius: 10,
+                borderCurve: 'continuous',
+                paddingVertical: 10,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 6,
+                opacity: followLoading ? 0.55 : 1,
+              }}
+            >
+              <Ionicons
+                name={isFollowing ? 'checkmark-outline' : 'person-add-outline'}
+                size={16}
+                color={isFollowing ? Colors.textPrimary : Colors.white}
+              />
+              <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: isFollowing ? Colors.textPrimary : Colors.white }}>
+                {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+              </Text>
+            </Pressable>
+          ) : null}
           <Pressable
-            onPress={handleFollow}
-            style={{
-              flex: 1,
-              backgroundColor: Colors.primary,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              paddingVertical: 10,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: 6,
-            }}
-          >
-            <Ionicons name="person-add-outline" size={16} color={Colors.white} />
-            <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.white }}>
-              Follow
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {}}
+            onPress={handleMessage}
             style={{
               flex: 1,
               borderWidth: 1,
