@@ -15,6 +15,15 @@ export const ProfileCard = ({ user }: ProfileCardProps) => {
           <Avatar name={user.full_name} username={user.username} />
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-lg font-bold text-foreground-primary">{user.full_name || user.username}</h3>
+            {user.role === 'admin' ? (
+              <span className="mt-1 inline-flex items-center rounded-full bg-status-success/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-status-success">
+                Staff
+              </span>
+            ) : user.is_expert ? (
+              <span className="mt-1 inline-flex items-center rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent">
+                Expert
+              </span>
+            ) : null}
           </div>
           <ArrowUpRight size={18} className="text-foreground-tertiary group-hover:text-accent" />
         </div>

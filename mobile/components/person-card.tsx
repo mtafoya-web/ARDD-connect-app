@@ -7,6 +7,7 @@ import { Fonts } from '@/constants/Typography';
 import { Avatar } from './avatar';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
+import { Badge } from './badge';
 import type { User } from '@/store/types';
 
 interface PersonCardProps {
@@ -80,6 +81,11 @@ export function PersonCard({ user }: PersonCardProps) {
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.textPrimary }}>
             {user.full_name}
           </Text>
+          {user.is_expert ? (
+            <View style={{ flexDirection: 'row', marginTop: 2 }}>
+              <Badge label="EXPERT" variant="primary" size="sm" />
+            </View>
+          ) : null}
           {user.affiliation ? (
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
               {user.affiliation}

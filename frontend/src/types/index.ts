@@ -30,6 +30,7 @@ export interface User {
   profile_photo_url?: string;
   profile_photo_public_id?: string;
   ardd_meta?: ARDDParticipantMetadata | null;
+  is_expert?: boolean;
   followers_count?: number;
   following_count?: number;
   created_at?: string;

@@ -54,6 +54,7 @@ class UserOut(BaseModel):
     website: str | None = ""
     profile_photo_url: str | None = ""
     ardd_meta: dict | None = None
+    is_expert: bool = False
 
     followers_count: int = 0
     following_count: int = 0
