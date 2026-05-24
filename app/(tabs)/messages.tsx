@@ -24,10 +24,18 @@ export default function MessagesScreen() {
       return;
     }
     try {
-      const data = await apiClient.get<Conversation[]>('/messages/conversations');
-      setConversations(data);
-    } catch {
-      // No conversations is acceptable
+      const data = await apiClient.get<any>('/messages');
+      console.log('MESSAGES RESPONSE:', data);
+      const normalizedMessages = Array.isArray(data)
+        ? data
+        : Array.isArray(data.messages)
+          ? data.messages
+          : Array.isArray(data.items)
+            ? data.items
+            : [];
+      setConversations(normalizedMessages);
+    } catch (err) {
+      console.error('MESSAGES FETCH ERROR:', err);
       setConversations([]);
     } finally {
       setLoading(false);
@@ -131,7 +139,8 @@ export default function MessagesScreen() {
         </View>
       ) : (
         <View style={{ gap: 2 }}>
-          {conversations.map((conv) => (
+          {(() => { console.log('messages value:', conversations); console.log('messages is array:', Array.isArray(conversations)); return null; })()}
+          {Array.isArray(conversations) && conversations.map((conv) => (
             <Pressable
               key={conv.id}
               style={({ pressed }) => ({

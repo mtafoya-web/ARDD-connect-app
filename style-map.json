@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": 1779589204678,
+  "generatedAt": 1779590208501,
   "entries": {
     "ProfileScreen@app/(tabs)/profile.tsx:44": {
       "element": {
@@ -4349,6 +4349,526 @@
               "col": 62,
               "endCol": 64,
               "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:51": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 51
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "flex": {
+              "line": 51,
+              "col": 27,
+              "endCol": 28,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:58": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 58
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "flex": {
+              "line": 59,
+              "col": 21,
+              "endCol": 22,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:63": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 63
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 63,
+              "col": 55,
+              "endCol": 57,
+              "raw": "26"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:68": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 68
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 70,
+              "col": 25,
+              "endCol": 30,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 71,
+              "col": 22,
+              "endCol": 30,
+              "raw": "'center'"
+            },
+            "borderRadius": {
+              "line": 73,
+              "col": 24,
+              "endCol": 26,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 74,
+              "col": 23,
+              "endCol": 35,
+              "raw": "'continuous'"
+            },
+            "paddingHorizontal": {
+              "line": 75,
+              "col": 29,
+              "endCol": 31,
+              "raw": "14"
+            },
+            "paddingVertical": {
+              "line": 76,
+              "col": 27,
+              "endCol": 29,
+              "raw": "10"
+            },
+            "gap": {
+              "line": 77,
+              "col": 15,
+              "endCol": 17,
+              "raw": "10"
+            },
+            "borderWidth": {
+              "line": 78,
+              "col": 23,
+              "endCol": 24,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:83": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 83
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "flex": {
+              "line": 89,
+              "col": 18,
+              "endCol": 19,
+              "raw": "1"
+            },
+            "fontSize": {
+              "line": 91,
+              "col": 22,
+              "endCol": 24,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:101": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 101
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 101,
+              "col": 35,
+              "endCol": 43,
+              "raw": "'center'"
+            },
+            "paddingVertical": {
+              "line": 101,
+              "col": 62,
+              "endCol": 64,
+              "raw": "80"
+            },
+            "gap": {
+              "line": 101,
+              "col": 71,
+              "endCol": 73,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:102": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 102
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "width": {
+              "line": 104,
+              "col": 21,
+              "endCol": 23,
+              "raw": "64"
+            },
+            "height": {
+              "line": 105,
+              "col": 22,
+              "endCol": 24,
+              "raw": "64"
+            },
+            "borderRadius": {
+              "line": 106,
+              "col": 28,
+              "endCol": 30,
+              "raw": "32"
+            },
+            "alignItems": {
+              "line": 108,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 109,
+              "col": 30,
+              "endCol": 38,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:114": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 114
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 114,
+              "col": 63,
+              "endCol": 65,
+              "raw": "17"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:117": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 117
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 117,
+              "col": 62,
+              "endCol": 64,
+              "raw": "14"
+            },
+            "textAlign": {
+              "line": 117,
+              "col": 106,
+              "endCol": 114,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:120": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 120
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 124,
+              "col": 28,
+              "endCol": 30,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 125,
+              "col": 27,
+              "endCol": 39,
+              "raw": "'continuous'"
+            },
+            "paddingVertical": {
+              "line": 126,
+              "col": 31,
+              "endCol": 33,
+              "raw": "12"
+            },
+            "paddingHorizontal": {
+              "line": 127,
+              "col": 33,
+              "endCol": 35,
+              "raw": "20"
+            },
+            "flexDirection": {
+              "line": 128,
+              "col": 29,
+              "endCol": 34,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 129,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 130,
+              "col": 19,
+              "endCol": 20,
+              "raw": "8"
+            },
+            "marginTop": {
+              "line": 131,
+              "col": 25,
+              "endCol": 26,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:135": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 135
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 135,
+              "col": 65,
+              "endCol": 67,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:141": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 141
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "gap": {
+              "line": 141,
+              "col": 28,
+              "endCol": 29,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:144": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 144
+      },
+      "styles": [
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:157": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 157
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "flex": {
+              "line": 157,
+              "col": 35,
+              "endCol": 36,
+              "raw": "1"
+            },
+            "gap": {
+              "line": 157,
+              "col": 43,
+              "endCol": 44,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:158": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 158
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 158,
+              "col": 69,
+              "endCol": 71,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:162": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 162
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 163,
+              "col": 66,
+              "endCol": 68,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:171": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 171
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 174,
+              "col": 34,
+              "endCol": 36,
+              "raw": "10"
+            },
+            "minWidth": {
+              "line": 175,
+              "col": 30,
+              "endCol": 32,
+              "raw": "20"
+            },
+            "height": {
+              "line": 176,
+              "col": 28,
+              "endCol": 30,
+              "raw": "20"
+            },
+            "alignItems": {
+              "line": 177,
+              "col": 32,
+              "endCol": 40,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 178,
+              "col": 36,
+              "endCol": 44,
+              "raw": "'center'"
+            },
+            "paddingHorizontal": {
+              "line": 179,
+              "col": 39,
+              "endCol": 40,
+              "raw": "6"
+            }
+          }
+        }
+      ]
+    },
+    "MessagesScreen@app/(tabs)/messages.tsx:182": {
+      "element": {
+        "file": "app/(tabs)/messages.tsx",
+        "line": 182
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/messages.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 182,
+              "col": 71,
+              "endCol": 73,
+              "raw": "11"
             }
           }
         }
