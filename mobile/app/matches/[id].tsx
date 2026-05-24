@@ -86,7 +86,12 @@ export default function MatchDetailScreen() {
   const meProfile = match.you ?? match.me ?? user!;
   const themProfile = match.them;
 
-  const ProfileCard = ({ label, person }: { label: string; person: User }) => (
+  const ProfileCard = ({ label, person }: { label: string; person: User }) => {
+    const researchFocus = person.ardd_meta?.researchFocus ?? (person.area_of_study ? [person.area_of_study] : []);
+    const conferenceGoals = person.ardd_meta?.businessGoals ?? [];
+    const availability = person.ardd_meta?.availability ?? [];
+
+    return (
     <View
       style={{
         flex: 1,
@@ -108,9 +113,9 @@ export default function MatchDetailScreen() {
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
             {person.full_name}
           </Text>
-          {person.institution ? (
+          {person.affiliation ? (
             <Text style={{ fontFamily: Fonts.regular, fontSize: 11, color: Colors.textSecondary }}>
-              {person.institution}
+              {person.affiliation}
             </Text>
           ) : null}
         </View>
@@ -123,28 +128,30 @@ export default function MatchDetailScreen() {
           </Text>
         </View>
       ) : null}
-      {person.research_focus ? (
+      {researchFocus.length > 0 ? (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             RESEARCH FOCUS
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-            <View style={{ backgroundColor: Colors.inputBg, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
-              <Text style={{ fontFamily: Fonts.medium, fontSize: 11, color: Colors.textSecondary }}>
-                {person.research_focus}
-              </Text>
-            </View>
+            {researchFocus.map((focus, i) => (
+              <View key={`${focus}-${i}`} style={{ backgroundColor: Colors.inputBg, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
+                <Text style={{ fontFamily: Fonts.medium, fontSize: 11, color: Colors.textSecondary }}>
+                  {focus}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
       ) : null}
-      {Array.isArray(person.conference_goals) && person.conference_goals.length > 0 && (
+      {conferenceGoals.length > 0 && (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             CONFERENCE GOALS
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-            {person.conference_goals.map((goal, i) => (
-              <View key={i} style={{ backgroundColor: Colors.primaryLight, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
+            {conferenceGoals.map((goal, i) => (
+              <View key={`${goal}-${i}`} style={{ backgroundColor: Colors.primaryLight, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
                 <Text style={{ fontFamily: Fonts.medium, fontSize: 11, color: Colors.primary }}>
                   {goal}
                 </Text>
@@ -153,20 +160,21 @@ export default function MatchDetailScreen() {
           </View>
         </View>
       )}
-      {Array.isArray(person.availability) && person.availability.length > 0 && (
+      {availability.length > 0 && (
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 10, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             AVAILABILITY
           </Text>
-          {person.availability.map((slot, i) => (
-            <Text key={i} style={{ fontFamily: Fonts.regular, fontSize: 11, color: Colors.textSecondary }}>
+          {availability.map((slot, i) => (
+            <Text key={`${slot}-${i}`} style={{ fontFamily: Fonts.regular, fontSize: 11, color: Colors.textSecondary }}>
               {slot}
             </Text>
           ))}
         </View>
       )}
     </View>
-  );
+    );
+  };
 
   return (
     <ScrollView

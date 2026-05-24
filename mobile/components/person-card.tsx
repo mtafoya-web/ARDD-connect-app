@@ -31,9 +31,9 @@ export function PersonCard({ user }: PersonCardProps) {
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.textPrimary }}>
             {user.full_name}
           </Text>
-          {user.institution ? (
+          {user.affiliation ? (
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
-              {user.institution}
+              {user.affiliation}
             </Text>
           ) : null}
         </View>
@@ -55,19 +55,19 @@ export function PersonCard({ user }: PersonCardProps) {
       ) : null}
 
       <View style={{ gap: 4 }}>
-        {user.institution ? (
+        {user.affiliation ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="business-outline" size={13} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
-              {user.institution}
+              {user.affiliation}
             </Text>
           </View>
         ) : null}
-        {user.research_focus ? (
+        {user.area_of_study ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="flask-outline" size={13} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
-              {user.research_focus}
+              {user.area_of_study}
             </Text>
           </View>
         ) : null}

@@ -157,8 +157,8 @@ export default function MessagesScreen() {
       ) : (
         <View style={{ gap: 2 }}>
           {safeConversations.map((conv, index) => {
-            const displayName = conv.user?.full_name ?? conv.user?.username ?? conv.participant?.full_name ?? 'Unknown';
-            const uniqueKey = conv.id ?? conv.user?.id ?? index;
+            const displayName = conv.user?.full_name ?? conv.user?.username ?? 'Unknown';
+            const uniqueKey = conv.user?.id ?? index;
             const userId = conv.user?.id;
             const isValidUserId = userId != null && Number.isFinite(Number(userId));
 
@@ -203,23 +203,6 @@ export default function MessagesScreen() {
                     </Text>
                   ) : null}
                 </View>
-                {conv.unread_count != null && conv.unread_count > 0 ? (
-                  <View
-                    style={{
-                      backgroundColor: Colors.primary,
-                      borderRadius: 10,
-                      minWidth: 20,
-                      height: 20,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      paddingHorizontal: 6,
-                    }}
-                  >
-                    <Text style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: Colors.white, fontVariant: ['tabular-nums'] }}>
-                      {conv.unread_count}
-                    </Text>
-                  </View>
-                ) : null}
                 <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
               </Pressable>
             );

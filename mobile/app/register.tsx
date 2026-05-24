@@ -17,6 +17,7 @@ interface RegisterUserOut {
   id: number;
   username: string;
   email: string;
+  phone_number?: string | null;
   full_name: string;
 }
 
@@ -33,6 +34,7 @@ export default function RegisterScreen() {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,8 @@ export default function RegisterScreen() {
       // Register returns UserOut (no token), then auto-login
       await apiClient.post<RegisterUserOut>('/auth/register', {
         username: username.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
+        phone_number: phoneNumber.trim() || undefined,
         password: password,
       });
       // Auto-login after successful registration (form-urlencoded with username + password)
@@ -58,6 +61,13 @@ export default function RegisterScreen() {
         true
       );
       setAuth(loginData.access_token, loginData.user);
+      const displayName = fullName.trim();
+      if (displayName) {
+        const updatedUser = await apiClient.put<User>('/users/me', {
+          full_name: displayName,
+        });
+        setAuth(loginData.access_token, updatedUser);
+      }
       router.replace('/(tabs)');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Registration failed.');
@@ -148,6 +158,13 @@ export default function RegisterScreen() {
               placeholder="jane@university.edu"
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+            <InputField
+              label="Phone number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Optional"
+              keyboardType="phone-pad"
             />
             <InputField
               label="Password"

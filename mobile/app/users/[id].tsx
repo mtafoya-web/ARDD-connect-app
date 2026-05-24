@@ -47,7 +47,9 @@ export default function UserProfileScreen() {
     const numericId = Number(id);
     if (!Number.isFinite(numericId)) return;
     try {
-      await apiClient.post(`/users/${numericId}/follow`);
+      // Backend route is POST /follows/{user_id}, NOT /users/{id}/follow.
+      // DELETE /follows/{user_id} would unfollow (not wired here yet).
+      await apiClient.post(`/follows/${numericId}`);
     } catch {
       // Silent
     }
@@ -181,7 +183,7 @@ export default function UserProfileScreen() {
         {/* Tags */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {profile.role ? <Badge label={profile.role} variant="outline" /> : null}
-          {profile.research_focus ? <Badge label={profile.research_focus} variant="outline" /> : null}
+          {profile.area_of_study ? <Badge label={profile.area_of_study} variant="outline" /> : null}
           {profile.location ? <Badge label={profile.location} variant="primary" /> : null}
         </View>
       </View>
@@ -201,19 +203,19 @@ export default function UserProfileScreen() {
         <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
           Profile details
         </Text>
-        {profile.institution ? (
+        {profile.affiliation ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="business-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
-              {profile.institution}
+              {profile.affiliation}
             </Text>
           </View>
         ) : null}
-        {profile.research_focus ? (
+        {profile.area_of_study ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="flask-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
-              {profile.research_focus}
+              {profile.area_of_study}
             </Text>
           </View>
         ) : null}

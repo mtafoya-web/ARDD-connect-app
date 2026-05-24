@@ -69,6 +69,25 @@ class ApiClient {
     return res.json();
   }
 
+  async put<T>(path: string, body?: unknown): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: this.getHeaders('application/json'),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) {
+      useAuthStore.getState().logout();
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      console.error(`[ApiClient] PUT ${url} → ${res.status}`, errBody);
+      throw new Error(errBody || `API Error ${res.status}: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
   async delete<T>(path: string): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const res = await fetch(url, {
@@ -83,6 +102,9 @@ class ApiClient {
       const body = await res.text().catch(() => '');
       console.error(`[ApiClient] DELETE ${url} → ${res.status}`, body);
       throw new Error(`API Error ${res.status}: ${body || res.statusText}`);
+    }
+    if (res.status === 204) {
+      return undefined as T;
     }
     return res.json();
   }

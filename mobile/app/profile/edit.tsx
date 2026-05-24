@@ -16,12 +16,15 @@ export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, setUser } = useAuthStore();
 
+  // Local state names track UI labels; we map to backend field names
+  // (affiliation, area_of_study) at the payload boundary below.
   const [fullName, setFullName] = useState(user?.full_name ?? '');
-  const [username, setUsername] = useState(user?.username ?? '');
   const [bio, setBio] = useState(user?.bio ?? '');
-  const [institution, setInstitution] = useState(user?.institution ?? '');
-  const [researchFocus, setResearchFocus] = useState(user?.research_focus ?? '');
+  const [institution, setInstitution] = useState(user?.affiliation ?? '');
+  const [role, setRole] = useState(user?.role ?? '');
+  const [researchFocus, setResearchFocus] = useState(user?.area_of_study ?? '');
   const [location, setLocation] = useState(user?.location ?? '');
+  const [website, setWebsite] = useState(user?.website ?? '');
   const [researchInterests, setResearchInterests] = useState(user?.research_interests ?? '');
   const [lookingFor, setLookingFor] = useState(user?.looking_for ?? '');
   const [saving, setSaving] = useState(false);
@@ -31,13 +34,17 @@ export default function EditProfileScreen() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await apiClient.post<User>('/users/me', {
+      // Backend route is PUT /users/me with the canonical field names
+      // accepted by UserUpdate. Username is intentionally excluded because
+      // the backend does not support changing it on this endpoint.
+      const updated = await apiClient.put<User>('/users/me', {
         full_name: fullName.trim(),
-        username: username.trim(),
         bio: bio.trim(),
-        institution: institution.trim(),
-        research_focus: researchFocus.trim(),
+        affiliation: institution.trim(),
+        role: role.trim(),
+        area_of_study: researchFocus.trim(),
         location: location.trim(),
+        website: website.trim(),
         research_interests: researchInterests.trim(),
         looking_for: lookingFor.trim(),
       });
@@ -87,11 +94,12 @@ export default function EditProfileScreen() {
           }}
         >
           <InputField label="Full name" value={fullName} onChangeText={setFullName} autoCapitalize="words" />
-          <InputField label="Username" value={username} onChangeText={setUsername} autoCapitalize="none" />
           <InputField label="Bio" value={bio} onChangeText={setBio} multiline numberOfLines={3} autoCapitalize="sentences" />
           <InputField label="Institution" value={institution} onChangeText={setInstitution} autoCapitalize="words" />
+          <InputField label="Role" value={role} onChangeText={setRole} autoCapitalize="words" />
           <InputField label="Research focus" value={researchFocus} onChangeText={setResearchFocus} autoCapitalize="sentences" />
           <InputField label="Location" value={location} onChangeText={setLocation} autoCapitalize="words" />
+          <InputField label="Website" value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
           <InputField label="Research interests" value={researchInterests} onChangeText={setResearchInterests} multiline numberOfLines={3} autoCapitalize="sentences" />
           <InputField label="Looking for" value={lookingFor} onChangeText={setLookingFor} multiline numberOfLines={3} autoCapitalize="sentences" />
         </View>

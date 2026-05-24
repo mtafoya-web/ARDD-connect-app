@@ -6,18 +6,19 @@ import { Fonts } from '@/constants/Typography';
 import { useAuthStore } from '@/store/auth-store';
 import { apiClient } from '@/lib/api-client';
 import { SegmentedControl } from '@/components/segmented-control';
-import { EventCard } from '@/components/event-card';
 import { SessionCard } from '@/components/session-card';
 import { LoadingState } from '@/components/loading-state';
 import { ErrorState } from '@/components/error-state';
 import { AuthPrompt } from '@/components/auth-prompt';
-import type { Event, Session } from '@/store/types';
+import type { Session } from '@/store/types';
 
 export default function EventsScreen() {
   const insets = useSafeAreaInsets();
   const { isLoggedIn } = useAuthStore();
   const [activeTab, setActiveTab] = useState(0);
-  const [events, setEvents] = useState<Event[]>([]);
+  // All three tabs render Session shape (the backend flattens ardd_meta
+  // fields to top level on /sessions/* endpoints).
+  const [program, setProgram] = useState<Session[]>([]);
   const [recommended, setRecommended] = useState<Session[]>([]);
   const [mySchedule, setMySchedule] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export default function EventsScreen() {
       setError(null);
       if (activeTab === 0) {
         const data = await apiClient.get<any>('/sessions/');
-        setEvents(Array.isArray(data) ? data : []);
+        setProgram(Array.isArray(data) ? data : []);
       } else if (activeTab === 1 && isLoggedIn) {
         const data = await apiClient.get<any>('/sessions/recommended?limit=20');
         setRecommended(Array.isArray(data) ? data : []);
@@ -61,7 +62,7 @@ export default function EventsScreen() {
       await apiClient.post(`/sessions/${sessionId}/star`, { star: true });
       // Optimistic update
       const updateList = (list: Session[]) =>
-        (Array.isArray(list) ? list : []).map((s) => (s.id === sessionId ? { ...s, is_starred: true } : s));
+        (Array.isArray(list) ? list : []).map((s) => (s.id === sessionId ? { ...s, starred: true } : s));
       setRecommended(updateList);
       setMySchedule(updateList);
     } catch {
@@ -74,7 +75,7 @@ export default function EventsScreen() {
     if (error) return <ErrorState message={error} onRetry={fetchData} />;
 
     if (activeTab === 0) {
-      if (events.length === 0) {
+      if (program.length === 0) {
         return (
           <View style={{ alignItems: 'center', padding: 40, gap: 12 }}>
             <Text style={{ fontFamily: Fonts.medium, fontSize: 15, color: Colors.textSecondary }}>
@@ -84,9 +85,13 @@ export default function EventsScreen() {
         );
       }
       return (
-        <View style={{ gap: 16 }}>
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} />
+        <View style={{ gap: 12 }}>
+          {program.map((session) => (
+            <SessionCard
+              key={session.id}
+              session={session}
+              onStar={isLoggedIn ? () => handleStar(session.id) : undefined}
+            />
           ))}
         </View>
       );

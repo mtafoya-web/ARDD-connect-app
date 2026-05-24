@@ -11,29 +11,15 @@ import { Badge } from '@/components/badge';
 import { Avatar } from '@/components/avatar';
 import { LoadingState } from '@/components/loading-state';
 import { ErrorState } from '@/components/error-state';
-
-interface EventDetail {
-  id: number;
-  title: string;
-  description?: string;
-  event_type?: string;
-  session_type?: string;
-  location?: string;
-  hall?: string;
-  date?: string;
-  start_time?: string;
-  end_time?: string;
-  topics?: string[];
-  speakers?: string[];
-  is_starred?: boolean;
-}
+import type { Event } from '@/store/types';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isLoggedIn } = useAuthStore();
-  const [event, setEvent] = useState<EventDetail | null>(null);
+  const [event, setEvent] = useState<Event | null>(null);
+  const [starred, setStarred] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [starring, setStarring] = useState(false);
@@ -47,16 +33,13 @@ export default function EventDetailScreen() {
         return;
       }
       try {
-        const data = await apiClient.get<EventDetail>(`/sessions/${numericId}`);
+        // GET /events/{id} is the canonical detail endpoint. There is no
+        // GET /sessions/{id} on the backend — sessions live in the events
+        // table; /sessions/* endpoints exist only for listing/starring.
+        const data = await apiClient.get<Event>(`/events/${numericId}`);
         setEvent(data);
       } catch (e: unknown) {
-        // Try events endpoint as fallback
-        try {
-          const data = await apiClient.get<EventDetail>(`/events/${numericId}`);
-          setEvent(data);
-        } catch {
-          setError(e instanceof Error ? e.message : 'Failed to load event');
-        }
+        setError(e instanceof Error ? e.message : 'Failed to load event');
       } finally {
         setLoading(false);
       }
@@ -70,9 +53,9 @@ export default function EventDetailScreen() {
     if (!Number.isFinite(numericId)) return;
     setStarring(true);
     try {
-      const newStarred = !event.is_starred;
+      const newStarred = !starred;
       await apiClient.post(`/sessions/${numericId}/star`, { star: newStarred });
-      setEvent({ ...event, is_starred: newStarred });
+      setStarred(newStarred);
     } catch {
       // Silent
     } finally {
@@ -116,8 +99,8 @@ export default function EventDetailScreen() {
       {/* Event header */}
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {(event.event_type || event.session_type) && (
-            <Badge label={event.event_type || event.session_type || ''} variant="primary" size="md" />
+          {event.ardd_meta?.sessionType && (
+            <Badge label={event.ardd_meta.sessionType} variant="primary" size="md" />
           )}
         </View>
         <Text selectable style={{ fontFamily: Fonts.bold, fontSize: 24, color: Colors.textPrimary, lineHeight: 30 }}>
@@ -152,34 +135,35 @@ export default function EventDetailScreen() {
           borderColor: Colors.border,
         }}
       >
-        {(event.location || event.hall) ? (
+        {(event.ardd_meta?.room || event.location) ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ionicons name="location-outline" size={18} color={Colors.primary} />
             <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
-              {event.hall || event.location}
+              {event.ardd_meta?.room || event.location}
             </Text>
           </View>
         ) : null}
-        {event.date ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
-            <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
-              {event.date}
-            </Text>
-          </View>
-        ) : null}
-        {event.start_time ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Ionicons name="time-outline" size={18} color={Colors.primary} />
-            <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
-              {event.start_time}{event.end_time ? ` – ${event.end_time}` : ''}
-            </Text>
-          </View>
+        {event.start_date ? (
+          <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+              <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
+                {new Date(event.start_date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name="time-outline" size={18} color={Colors.primary} />
+              <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
+                {new Date(event.start_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                {event.end_date ? ` – ${new Date(event.end_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''}
+              </Text>
+            </View>
+          </>
         ) : null}
       </View>
 
       {/* Speakers */}
-      {Array.isArray(event.speakers) && event.speakers.length > 0 && (
+      {Array.isArray(event.ardd_meta?.speakers) && event.ardd_meta!.speakers!.length > 0 && (
         <View
           style={{
             backgroundColor: Colors.card,
@@ -194,21 +178,28 @@ export default function EventDetailScreen() {
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.textPrimary }}>
             Speakers
           </Text>
-          {event.speakers.map((speaker, i) => (
+          {event.ardd_meta!.speakers!.map((speaker, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Avatar name={speaker} size={32} />
-              <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
-                {speaker}
-              </Text>
+              <Avatar name={speaker.name} size={32} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: Fonts.medium, fontSize: 14, color: Colors.textPrimary }}>
+                  {speaker.name}
+                </Text>
+                {speaker.affiliation ? (
+                  <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
+                    {speaker.affiliation}
+                  </Text>
+                ) : null}
+              </View>
             </View>
           ))}
         </View>
       )}
 
       {/* Topics */}
-      {Array.isArray(event.topics) && event.topics.length > 0 && (
+      {Array.isArray(event.ardd_meta?.topicTags) && event.ardd_meta!.topicTags!.length > 0 && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {event.topics.map((topic, i) => (
+          {event.ardd_meta!.topicTags!.map((topic, i) => (
             <Badge key={i} label={topic} variant="primary" size="md" />
           ))}
         </View>
@@ -224,7 +215,7 @@ export default function EventDetailScreen() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
-            backgroundColor: event.is_starred ? Colors.primaryLight : Colors.primary,
+            backgroundColor: starred ? Colors.primaryLight : Colors.primary,
             borderRadius: 12,
             borderCurve: 'continuous',
             paddingVertical: 14,
@@ -232,18 +223,18 @@ export default function EventDetailScreen() {
           })}
         >
           <Ionicons
-            name={event.is_starred ? 'star' : 'star-outline'}
+            name={starred ? 'star' : 'star-outline'}
             size={18}
-            color={event.is_starred ? Colors.primary : Colors.white}
+            color={starred ? Colors.primary : Colors.white}
           />
           <Text
             style={{
               fontFamily: Fonts.semiBold,
               fontSize: 15,
-              color: event.is_starred ? Colors.primary : Colors.white,
+              color: starred ? Colors.primary : Colors.white,
             }}
           >
-            {event.is_starred ? 'Saved to schedule' : 'Save to my schedule'}
+            {starred ? 'Saved to schedule' : 'Save to my schedule'}
           </Text>
         </Pressable>
       ) : (

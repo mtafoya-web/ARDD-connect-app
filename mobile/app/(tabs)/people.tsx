@@ -33,30 +33,11 @@ export default function PeopleScreen() {
         const safeUsers = Array.isArray(data) ? data : [];
         setUsers(safeUsers);
       } else if (isLoggedIn) {
-        // /matches/me returns { me: {...}, matches: [...] }
+        // /matches/me returns { me: {...}, matches: [...] }. The Match
+        // type now mirrors backend exactly, so no remapping required.
         const data = await apiClient.get<any>('/matches/me');
         const safeMatches = Array.isArray(data?.matches) ? data.matches : [];
-        // Map API response shape to our Match type
-        setMatches(safeMatches.map((m: any) => ({
-          id: m.matchId ?? m.id,
-          user: m.candidate ? {
-            id: m.candidate.id ?? m.candidateId,
-            username: m.candidate.username ?? '',
-            email: '',
-            full_name: m.candidate.full_name ?? '',
-            institution: m.candidate.affiliation,
-            bio: m.candidate.bio,
-            role: m.candidate.role,
-            research_focus: Array.isArray(m.candidate.researchFocus) ? m.candidate.researchFocus.join(', ') : m.candidate.researchFocus,
-            conference_goals: m.candidate.businessGoals,
-            availability: m.candidate.availability,
-          } : { id: m.candidateId ?? 0, username: '', email: '', full_name: 'Unknown' },
-          score: m.score ?? 0,
-          match_type: m.scenario,
-          quote: m.candidate?.introTagline,
-          reasons: Array.isArray(m.reasons?.bullets) ? m.reasons.bullets : (Array.isArray(m.reasons) ? m.reasons : []),
-          conversation_starter: m.reasons?.conversationStarter ?? m.conversation_starter,
-        })));
+        setMatches(safeMatches as Match[]);
       }
     } catch (e: unknown) {
       console.error('[People] fetch error:', e instanceof Error ? e.message : e);
@@ -86,7 +67,7 @@ export default function PeopleScreen() {
     return (
       u.full_name?.toLowerCase().includes(q) ||
       u.username?.toLowerCase().includes(q) ||
-      (u.institution?.toLowerCase().includes(q) ?? false)
+      (u.affiliation?.toLowerCase().includes(q) ?? false)
     );
   });
 
@@ -139,7 +120,7 @@ export default function PeopleScreen() {
           </Text>
         </View>
         {safeMatches.map((match) => (
-          <MatchCard key={match.id} match={match} />
+          <MatchCard key={match.matchId} match={match} />
         ))}
       </View>
     );

@@ -14,9 +14,11 @@ interface MatchCardProps {
 export function MatchCard({ match }: MatchCardProps) {
   const router = useRouter();
 
-  const candidateId = match.candidateId ?? match.candidate?.id ?? match.user?.id;
-  const candidateName = match.candidate?.full_name ?? match.candidate?.username ?? match.user?.full_name ?? 'Chat';
+  const candidateId = match.candidateId ?? match.candidate?.id;
+  const candidateName = match.candidate?.full_name ?? match.candidate?.username ?? 'Chat';
   const isValidCandidateId = candidateId != null && Number.isFinite(Number(candidateId));
+  const reasonBullets = Array.isArray(match.reasons?.bullets) ? match.reasons.bullets : [];
+  const conversationStarter = match.reasons?.conversationStarter ?? '';
 
   const handleMessage = () => {
     if (!isValidCandidateId) return;
@@ -48,16 +50,16 @@ export function MatchCard({ match }: MatchCardProps) {
     >
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Avatar name={match.user.full_name} size={44} />
+        <Avatar name={candidateName} size={44} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.textPrimary }}>
-            {match.user.full_name}
+            {candidateName}
           </Text>
-          {match.user.institution && (
+          {match.candidate?.affiliation ? (
             <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
-              {match.user.institution}
+              {match.candidate.affiliation}
             </Text>
-          )}
+          ) : null}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
           <Ionicons name="sparkles" size={14} color={Colors.primary} />
@@ -67,13 +69,13 @@ export function MatchCard({ match }: MatchCardProps) {
         </View>
       </View>
 
-      {/* Match type */}
-      {match.match_type ? (
-        <Badge label={match.match_type} variant="outline" size="sm" />
+      {/* Scenario tag */}
+      {match.scenario ? (
+        <Badge label={match.scenario.replace(/_/g, ' ')} variant="outline" size="sm" />
       ) : null}
 
-      {/* Quote */}
-      {match.quote ? (
+      {/* Intro tagline */}
+      {match.candidate?.introTagline ? (
         <Text
           style={{
             fontFamily: Fonts.regular,
@@ -83,14 +85,14 @@ export function MatchCard({ match }: MatchCardProps) {
             lineHeight: 18,
           }}
         >
-          {`“${match.quote}”`}
+          {`“${match.candidate.introTagline}”`}
         </Text>
       ) : null}
 
       {/* Reasons */}
-      {(Array.isArray(match.reasons) ? match.reasons : []).length > 0 && (
+      {reasonBullets.length > 0 && (
         <View style={{ gap: 4 }}>
-          {(Array.isArray(match.reasons) ? match.reasons : []).map((reason, i) => (
+          {reasonBullets.map((reason, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
               <Text style={{ color: Colors.primary, fontSize: 14 }}>{'•'}</Text>
               <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary, flex: 1 }}>
@@ -102,7 +104,7 @@ export function MatchCard({ match }: MatchCardProps) {
       )}
 
       {/* Conversation starter */}
-      {match.conversation_starter ? (
+      {conversationStarter ? (
         <View
           style={{
             backgroundColor: Colors.background,
@@ -124,7 +126,7 @@ export function MatchCard({ match }: MatchCardProps) {
               lineHeight: 17,
             }}
           >
-            {match.conversation_starter}
+            {conversationStarter}
           </Text>
         </View>
       ) : null}

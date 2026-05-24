@@ -116,6 +116,29 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
 
+        {user.is_superuser ? (
+          <Pressable
+            onPress={() => router.push('/admin' as never)}
+            style={{
+              borderWidth: 1,
+              borderColor: Colors.primary,
+              borderRadius: 10,
+              borderCurve: 'continuous',
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+          >
+            <Ionicons name="shield-checkmark-outline" size={16} color={Colors.primary} />
+            <Text style={{ fontFamily: Fonts.semiBold, fontSize: 14, color: Colors.primary }}>
+              Admin dashboard
+            </Text>
+          </Pressable>
+        ) : null}
+
         {user.bio ? (
           <Text selectable style={{ fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, lineHeight: 20 }}>
             {user.bio}
@@ -125,7 +148,7 @@ export default function ProfileScreen() {
         {/* Tags */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {user.role ? <Badge label={user.role} variant="outline" /> : null}
-          {user.research_focus ? <Badge label={user.research_focus} variant="outline" /> : null}
+          {user.area_of_study ? <Badge label={user.area_of_study} variant="outline" /> : null}
           {user.location ? <Badge label={user.location} variant="primary" /> : null}
         </View>
       </View>
@@ -153,19 +176,19 @@ export default function ProfileScreen() {
             </Text>
           </View>
         ) : null}
-        {user.institution ? (
+        {user.affiliation ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="business-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
-              {user.institution}
+              {user.affiliation}
             </Text>
           </View>
         ) : null}
-        {user.research_focus ? (
+        {user.area_of_study ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="flask-outline" size={15} color={Colors.textTertiary} />
             <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
-              {user.research_focus}
+              {user.area_of_study}
             </Text>
           </View>
         ) : null}
@@ -253,7 +276,14 @@ export default function ProfileScreen() {
             </Text>
           </View>
         ) : (
-          (Array.isArray(posts) ? posts : []).map((post) => <PostCard key={post.id} post={post} showDelete />)
+          (Array.isArray(posts) ? posts : []).map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              showDelete
+              onDeleted={(postId) => setPosts((current) => current.filter((item) => item.id !== postId))}
+            />
+          ))
         )}
       </View>
 

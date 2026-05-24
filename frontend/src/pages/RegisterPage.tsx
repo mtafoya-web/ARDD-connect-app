@@ -3,12 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRight, UserPlus } from 'lucide-react';
 import { ArddLogo } from '../components/ArddLogo';
+import { updateMe } from '../services/usersService';
 
 const fieldClass =
   'w-full rounded-lg border border-border-secondary bg-surface-muted px-4 py-3 text-foreground-primary outline-none placeholder:text-foreground-tertiary focus:border-border-focus focus:bg-surface focus:ring-4 focus:ring-accent/15';
 
 export const RegisterPage = () => {
   const [formData, setFormData] = useState({
+    full_name: '',
     username: '',
     email: '',
     phone_number: '',
@@ -17,7 +19,7 @@ export const RegisterPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { register, login } = useAuth();
+  const { register, login, refreshUser } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -32,6 +34,12 @@ export const RegisterPage = () => {
     setLoading(true);
 
     try {
+      const fullName = formData.full_name.trim();
+      if (!fullName) {
+        setError('Enter your full name.');
+        return;
+      }
+
       const email = formData.email.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         setError('Enter a real email address you can access.');
@@ -39,14 +47,17 @@ export const RegisterPage = () => {
       }
 
       await register({
-        ...formData,
+        username: formData.username,
         email,
         phone_number: formData.phone_number.trim() || undefined,
+        password: formData.password,
       });
       await login({
         username: formData.username,
         password: formData.password,
       });
+      await updateMe({ full_name: fullName });
+      await refreshUser();
       navigate('/feed');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Registration failed');
@@ -77,6 +88,22 @@ export const RegisterPage = () => {
             )}
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <div>
+                <label htmlFor="full_name" className="mb-2 block text-sm font-bold text-foreground-primary">
+                  Full name
+                </label>
+                <input
+                  id="full_name"
+                  name="full_name"
+                  type="text"
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  required
+                  autoComplete="name"
+                  className={fieldClass}
+                />
+              </div>
+
               <div>
                 <label htmlFor="username" className="mb-2 block text-sm font-bold text-foreground-primary">
                   Username

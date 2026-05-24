@@ -117,7 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshUser = async () => {
-    if (!token) return;
+    const activeToken = token || localStorage.getItem('ardd_token');
+    if (!activeToken) return;
     const currentUser = await authService.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);

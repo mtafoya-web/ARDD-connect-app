@@ -41,6 +41,9 @@ export default function RootLayout() {
           <Stack.Screen name="matches/compare/[candidateId]" />
           <Stack.Screen name="chat/[otherUserId]" />
           <Stack.Screen name="profile/edit" />
+          <Stack.Screen name="admin/index" />
+          <Stack.Screen name="admin/events" />
+          <Stack.Screen name="admin/posts" />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

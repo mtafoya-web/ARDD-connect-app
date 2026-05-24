@@ -76,28 +76,15 @@ export default function FeedScreen() {
     if (!newPostText.trim() || posting) return;
     setPosting(true);
     try {
-      await apiClient.post('/posts', { body: newPostText.trim() });
+      // Backend route is POST /posts/ (trailing slash) and expects `content`,
+      // not `/posts` with `body`. The old form would 307-redirect AND 422.
+      await apiClient.post('/posts/', { content: newPostText.trim() });
       setNewPostText('');
       fetchPosts();
     } catch {
       // Silent fail for post creation
     } finally {
       setPosting(false);
-    }
-  };
-
-  const handleLike = async (postId: number) => {
-    try {
-      await apiClient.post(`/posts/${postId}/like`);
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === postId
-            ? { ...p, is_liked: !p.is_liked, likes_count: p.is_liked ? p.likes_count - 1 : p.likes_count + 1 }
-            : p
-        )
-      );
-    } catch {
-      // Silent
     }
   };
 
@@ -241,8 +228,8 @@ export default function FeedScreen() {
           <PostCard
             key={post.id}
             post={post}
-            onLike={() => handleLike(post.id)}
             showDelete={post.author?.id === user?.id}
+            onDeleted={(postId) => setPosts((current) => current.filter((item) => item.id !== postId))}
           />
         ))
       )}

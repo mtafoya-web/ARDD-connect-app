@@ -33,9 +33,9 @@ export function EventCard({ event }: EventCardProps) {
           justifyContent: 'center',
         }}
       >
-        {event.event_type ? (
+        {event.ardd_meta?.sessionType ? (
           <View style={{ position: 'absolute', top: 10, left: 10 }}>
-            <Badge label={event.event_type} variant="primary" size="sm" />
+            <Badge label={event.ardd_meta.sessionType} variant="primary" size="sm" />
           </View>
         ) : null}
         <Ionicons name="calendar-outline" size={32} color={Colors.textTertiary} />
@@ -78,11 +78,16 @@ export function EventCard({ event }: EventCardProps) {
               </Text>
             </View>
           ) : null}
-          {event.date ? (
+          {event.start_date ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Ionicons name="time-outline" size={13} color={Colors.textSecondary} />
               <Text style={{ fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary }}>
-                {event.date}
+                {new Date(event.start_date).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </Text>
             </View>
           ) : null}
