@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint, Boolean, JSON
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from .database import Base
 
@@ -206,5 +206,5 @@ class Expert(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    user = relationship("User", foreign_keys=[user_id], backref="expert_profile")
+    user = relationship("User", foreign_keys=[user_id], backref=backref("expert_record", uselist=False))
     verified_by = relationship("User", foreign_keys=[verified_by_user_id])

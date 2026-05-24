@@ -7,28 +7,11 @@ from ..database import get_db
 from ..models import User, Follow, Post, Bookmark, Expert
 from ..schemas import UserOut, UserUpdate, PostOut, AdminUserUpdate
 from ..auth import get_current_user, get_optional_current_user, get_current_active_superuser
+from ..utils.user_helpers import populate_user_counts
 from ..utils.storage import upload_file, delete_file
 from ..utils.post_helpers import attach_interaction_data
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-def populate_user_counts(user: User, db: Session):
-    user.followers_count = db.query(Follow).filter(Follow.following_id == user.id).count()
-    user.following_count = db.query(Follow).filter(Follow.follower_id == user.id).count()
-    
-    # Check if user has a linked expert profile
-    expert = db.query(Expert).filter(Expert.user_id == user.id, Expert.is_claimed == True).first()
-    user.is_expert = expert is not None
-    if expert:
-        user.expert_profile = {
-            "field": expert.csv_field,
-            "keywords": expert.csv_keywords
-        }
-    else:
-        user.expert_profile = None
-    
-    return user
 
 
 @router.put("/{user_id}/admin", response_model=UserOut)

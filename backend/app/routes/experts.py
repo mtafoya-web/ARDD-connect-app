@@ -13,6 +13,7 @@ from ..schemas import (
     ExpertClaimResponse,
 )
 from ..auth import get_current_user
+from ..utils.user_helpers import populate_user_counts
 
 router = APIRouter(prefix="/experts", tags=["experts"])
 
@@ -79,6 +80,10 @@ def get_expert(
     expert = db.query(Expert).filter(Expert.id == expert_id).first()
     if not expert:
         raise HTTPException(status_code=404, detail="Expert not found")
+    
+    if expert.user:
+        populate_user_counts(expert.user, db)
+        
     return expert
 
 
